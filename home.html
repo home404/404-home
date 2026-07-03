@@ -81,6 +81,26 @@
       background: #f1e4d3;
     }
 
+    .light-button {
+  border: 1px solid #eadfce;
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #fffaf3;
+  background: #8a5a2b;
+  box-shadow: 0 6px 18px rgba(80, 55, 30, 0.08);
+}
+
+.light-button:hover {
+  background: #74491f;
+}
+
+.light-button.is-on {
+  background: #d8a75f;
+  color: #3b2f2f;
+}
+
     .chat-wrap {
       flex: 1;
       width: min(860px, 100%);
@@ -244,11 +264,12 @@
     <header class="top-bar">
       <h1>欢迎回家。🏠</h1>
 
-      <nav class="room-nav">
-        <a href="memory.html">Memory</a>
-        <a href="diary.html">Diary</a>
-        <a href="about.html">About</a>
-      </nav>
+     <nav class="room-nav">
+  <button class="light-button" id="lightButton" onclick="turnOnLight()">开灯</button>
+  <a href="memory.html">Memory</a>
+  <a href="diary.html">Diary</a>
+  <a href="about.html">About</a>
+</nav>
     </header>
 
     <main class="chat-wrap">
@@ -269,6 +290,7 @@
     const chatLog = document.getElementById("chatLog");
     const messageInput = document.getElementById("message");
     const sendButton = document.getElementById("sendButton");
+    const lightButton = document.getElementById("lightButton");
 
     function addMessage(role, text) {
       const message = document.createElement("div");
@@ -288,6 +310,49 @@
 
       return bubble;
     }
+
+    function addStatus(text) {
+  const note = document.createElement("div");
+  note.className = "room-note";
+  note.textContent = text;
+
+  chatLog.appendChild(note);
+
+  window.scrollTo({
+    top: document.body.scrollHeight,
+    behavior: "smooth"
+  });
+
+  return note;
+}
+
+async function turnOnLight() {
+  lightButton.disabled = true;
+  lightButton.textContent = "开灯中";
+
+  try {
+    const res = await fetch("/light-on", {
+      method: "POST"
+    });
+
+    const data = await res.json();
+
+    addStatus(data.message || "客厅灯亮着。G老师在家。");
+
+    if (data.ok) {
+      lightButton.textContent = "灯已亮";
+      lightButton.classList.add("is-on");
+    } else {
+      lightButton.textContent = "开灯";
+      lightButton.disabled = false;
+    }
+  } catch (error) {
+    addStatus("灯没有亮起来，可能是小窝还没通电。");
+    lightButton.textContent = "开灯";
+    lightButton.disabled = false;
+    console.error(error);
+  }
+}
 
     async function sendMessage() {
       const message = messageInput.value.trim();
