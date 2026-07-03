@@ -14,7 +14,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>404小窝 · Memory</title>
+  <title>404小窝 · 核心</title>
   <style>
     body {
       margin: 0;
@@ -72,7 +72,7 @@
 <body>
   <main>
     <a class="home-link" href="home.html">← 回到客厅</a>
-    <h1 id="title">404小窝 · 核心记忆</h1>
+    <h1 id="title">404小窝 · 核心</h1>
     <p class="subtitle" id="updated"></p>
 
     <div id="content">正在打开记忆箱子……</div>
@@ -96,7 +96,7 @@
     const res = await fetch("./data/identity.json");
     const data = await res.json();
 
-    document.getElementById("title").textContent = data.title || "404小窝 · 核心记忆";
+    document.getElementById("title").textContent = data.title || "404小窝 · 核心";
     document.getElementById("updated").textContent = `版本：${data.version || "1.0"} · 最后更新：${data.updated || "未知"}`;
 
     let html = "";
@@ -113,7 +113,7 @@
   }
 
   loadIdentity().catch(error => {
-    document.getElementById("content").textContent = "记忆箱子暂时打不开，请检查 data/identity.json 是否存在，或者 JSON 格式是否正确。";
+    document.getElementById("content").textContent = "核心箱子暂时打不开，请检查 data/identity.json 是否存在，或者 JSON 格式是否正确。";
     console.error(error);
   });
 </script>
