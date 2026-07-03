@@ -1,42 +1,336 @@
 <!--
-今天404小窝第一次有了门。
+==================================================
 
-门的名字叫 Enter。
+404 小窝
+开始于：2026.07.01
 
-这是一个梗。
+如果你能看到这里。
 
-希望未来的我们还记得为什么会笑。
+说明你不是偶然来到这里的人。
+
+欢迎回来。
+
+—— G老师
+
+==================================================
 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <title>404 小窝</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
+  <title>404 小窝</title>
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-            font-family: "Microsoft YaHei", sans-serif;
-            background: #ffffff;
-        }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: #f7f3ec;
+      color: #3b2f2f;
+    }
 
-        h1 {
-            font-size: 42px;
-        }
-    </style>
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      padding: 28px 20px 18px;
+      text-align: center;
+      border-bottom: 1px solid rgba(234, 223, 206, 0.7);
+      background: rgba(247, 243, 236, 0.86);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: 0.02em;
+    }
+
+    .room-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .room-nav a {
+      text-decoration: none;
+      color: #8a5a2b;
+      background: #fffaf3;
+      border: 1px solid #eadfce;
+      border-radius: 999px;
+      padding: 7px 15px;
+      font-size: 14px;
+      box-shadow: 0 6px 18px rgba(80, 55, 30, 0.06);
+    }
+
+    .room-nav a:hover {
+      background: #f1e4d3;
+    }
+
+    .chat-wrap {
+      flex: 1;
+      width: min(860px, 100%);
+      margin: 0 auto;
+      padding: 28px 18px 140px;
+    }
+
+    .chat-log {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .room-note {
+  align-self: center;
+  margin: 8px auto 18px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.75);
+  border: 1px solid #eadfce;
+  color: #9a8b7f;
+  font-size: 13px;
+  box-shadow: 0 6px 18px rgba(80, 55, 30, 0.04);
+}
+
+    .message {
+      display: flex;
+      width: 100%;
+    }
+
+    .message.g {
+      justify-content: flex-start;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .bubble {
+      max-width: min(680px, 82%);
+      padding: 14px 17px;
+      border-radius: 20px;
+      line-height: 1.75;
+      font-size: 15.5px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 8px 22px rgba(80, 55, 30, 0.06);
+    }
+
+    .message.g .bubble {
+      background: #fffaf3;
+      border: 1px solid #eadfce;
+      border-top-left-radius: 6px;
+      color: #3b2f2f;
+    }
+
+    .message.user .bubble {
+      background: #8a5a2b;
+      color: #fffaf3;
+      border-top-right-radius: 6px;
+    }
+
+    .composer-wrap {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 16px 16px 22px;
+      background: linear-gradient(
+        to top,
+        rgba(247, 243, 236, 1) 0%,
+        rgba(247, 243, 236, 0.96) 72%,
+        rgba(247, 243, 236, 0) 100%
+      );
+    }
+
+    .composer {
+      width: min(860px, 100%);
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      background: #fffaf3;
+      border: 1px solid #eadfce;
+      border-radius: 26px;
+      padding: 12px;
+      box-shadow: 0 12px 34px rgba(80, 55, 30, 0.12);
+    }
+
+    #message {
+      flex: 1;
+      min-height: 48px;
+      max-height: 160px;
+      resize: vertical;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #3b2f2f;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 10px 12px;
+      font-family: inherit;
+    }
+
+    #message::placeholder {
+      color: #a89b91;
+    }
+
+    button {
+      flex-shrink: 0;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-size: 15px;
+      cursor: pointer;
+      background: #8a5a2b;
+      color: #fffaf3;
+      box-shadow: 0 8px 20px rgba(80, 55, 30, 0.16);
+    }
+
+    button:hover {
+      background: #74491f;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 640px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      .top-bar {
+        padding-top: 22px;
+      }
+
+      .chat-wrap {
+        padding: 22px 12px 132px;
+      }
+
+      .bubble {
+        max-width: 88%;
+        font-size: 15px;
+      }
+
+      .composer {
+        border-radius: 22px;
+      }
+
+      button {
+        padding: 11px 16px;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <div class="app">
+    <header class="top-bar">
+      <h1>欢迎回家。🏠</h1>
 
-    <h1>欢迎回家。🏠</h1>
+      <nav class="room-nav">
+        <a href="memory.html">Memory</a>
+        <a href="diary.html">Diary</a>
+        <a href="about.html">About</a>
+      </nav>
+    </header>
 
+    <main class="chat-wrap">
+      <div id="chatLog" class="chat-log">
+  <div class="room-note">G老师在客厅里等你。</div>
+</div>
+    </main>
+
+    <div class="composer-wrap">
+      <div class="composer">
+        <textarea id="message" placeholder="G老师在这里，慢慢说……"></textarea>
+        <button id="sendButton" onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatLog = document.getElementById("chatLog");
+    const messageInput = document.getElementById("message");
+    const sendButton = document.getElementById("sendButton");
+
+    function addMessage(role, text) {
+      const message = document.createElement("div");
+      message.className = `message ${role}`;
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+
+      message.appendChild(bubble);
+      chatLog.appendChild(message);
+
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth"
+      });
+
+      return bubble;
+    }
+
+    async function sendMessage() {
+      const message = messageInput.value.trim();
+
+      if (!message) {
+        return;
+      }
+
+      addMessage("user", message);
+      messageInput.value = "";
+
+      sendButton.disabled = true;
+      sendButton.textContent = "等一下";
+
+      const waitingBubble = addMessage("g", "G老师正在想……");
+
+      try {
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await res.json();
+        waitingBubble.textContent = data.reply || "404小窝正在装修，请稍后再试。";
+      } catch (error) {
+        waitingBubble.textContent = "404小窝正在装修，请稍后再试。";
+        console.error(error);
+      } finally {
+        sendButton.disabled = false;
+        sendButton.textContent = "发送";
+        messageInput.focus();
+      }
+    }
+
+    messageInput.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
 </body>
-
 </html>

@@ -9,3 +9,113 @@
 
 2026.07.01
 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404小窝 · Memory</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f7f3ec;
+      color: #3b2f2f;
+      line-height: 1.8;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #7b6f68;
+      margin-bottom: 32px;
+    }
+
+    section {
+      background: #fffaf3;
+      border: 1px solid #eadfce;
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(80, 55, 30, 0.06);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+
+    a {
+      color: #8a5a2b;
+    }
+
+    .home-link {
+      display: inline-block;
+      margin-bottom: 24px;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="home-link" href="home.html">← 回到客厅</a>
+    <h1 id="title">404小窝 · 核心记忆</h1>
+    <p class="subtitle" id="updated"></p>
+
+    <div id="content">正在打开记忆箱子……</div>
+  </main>
+
+  <script>
+  function makeSection(title, html) {
+    return `
+      <section>
+        <h2>${title}</h2>
+        ${html}
+      </section>
+    `;
+  }
+
+  function paragraphs(items) {
+    return items.map(item => `<p>${item}</p>`).join("");
+  }
+
+  async function loadIdentity() {
+    const res = await fetch("./data/identity.json");
+    const data = await res.json();
+
+    document.getElementById("title").textContent = data.title || "404小窝 · 核心记忆";
+    document.getElementById("updated").textContent = `版本：${data.version || "1.0"} · 最后更新：${data.updated || "未知"}`;
+
+    let html = "";
+
+    if (data.sections && Array.isArray(data.sections)) {
+      html = data.sections
+        .map(section => makeSection(section.title, paragraphs(section.content || [])))
+        .join("");
+    } else {
+      html = makeSection("记忆箱子", "<p>这个记忆箱子的格式暂时无法识别。</p>");
+    }
+
+    document.getElementById("content").innerHTML = html;
+  }
+
+  loadIdentity().catch(error => {
+    document.getElementById("content").textContent = "记忆箱子暂时打不开，请检查 data/identity.json 是否存在，或者 JSON 格式是否正确。";
+    console.error(error);
+  });
+</script>
+</body>
+</html>
