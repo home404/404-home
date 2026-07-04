@@ -52,25 +52,25 @@
         "PingFang SC",
         "Microsoft YaHei",
         sans-serif;
-      padding-bottom: 150px;
+      padding-bottom: 112px;
     }
 
     header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      padding: 34px 18px 22px;
-      text-align: center;
-      background: rgba(247, 243, 236, 0.92);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(234, 223, 206, 0.8);
-    }
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 20px 14px 14px;
+  text-align: center;
+  background: rgba(247, 243, 236, 0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(234, 223, 206, 0.8);
+}
 
     h1 {
-      margin: 0 0 22px;
-      font-size: clamp(32px, 8vw, 48px);
-      letter-spacing: 0.03em;
-    }
+  margin: 0 0 14px;
+  font-size: clamp(26px, 6vw, 38px);
+  letter-spacing: 0.03em;
+}
 
     nav {
       display: flex;
@@ -81,18 +81,18 @@
     }
 
     nav a,
-    nav button,
-    .tool-button {
-      border: 1px solid #eadfce;
-      border-radius: 999px;
-      padding: 9px 18px;
-      font-size: 16px;
-      text-decoration: none;
-      color: #8a5a2b;
-      background: rgba(255, 250, 243, 0.85);
-      box-shadow: 0 6px 18px rgba(80, 55, 30, 0.06);
-      cursor: pointer;
-    }
+nav button,
+.tool-button {
+  border: 1px solid #eadfce;
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-size: 15px;
+  text-decoration: none;
+  color: #8a5a2b;
+  background: rgba(255, 250, 243, 0.85);
+  box-shadow: 0 6px 18px rgba(80, 55, 30, 0.06);
+  cursor: pointer;
+}
 
     nav a:hover,
     nav button:hover,
@@ -112,19 +112,19 @@
     }
 
     .mini-tools {
-      margin-top: 14px;
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
     .tool-button {
-      padding: 6px 13px;
-      font-size: 13px;
-      color: #9b8672;
-      background: rgba(255, 250, 243, 0.6);
-    }
+  padding: 5px 11px;
+  font-size: 12px;
+  color: #9b8672;
+  background: rgba(255, 250, 243, 0.6);
+}
 
     main {
       width: min(760px, calc(100% - 28px));
@@ -133,17 +133,18 @@
     }
 
     .room-note {
-      width: fit-content;
-      max-width: 88%;
-      margin: 20px auto;
-      padding: 10px 22px;
-      border: 1px solid #eadfce;
-      border-radius: 999px;
-      color: #9b8672;
-      background: rgba(255, 250, 243, 0.72);
-      line-height: 1.7;
-      text-align: center;
-    }
+  width: fit-content;
+  max-width: 92%;
+  margin: 12px auto;
+  padding: 6px 14px;
+  border: 1px solid #eadfce;
+  border-radius: 999px;
+  color: #9b8672;
+  background: rgba(255, 250, 243, 0.72);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
 
     .message-row {
       display: flex;
@@ -182,59 +183,59 @@
     }
 
     .composer {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 20;
-      padding: 16px 14px calc(16px + env(safe-area-inset-bottom));
-      background: rgba(247, 243, 236, 0.9);
-      backdrop-filter: blur(18px);
-      border-top: 1px solid rgba(234, 223, 206, 0.8);
-    }
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(247, 243, 236, 0.9);
+  backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(234, 223, 206, 0.8);
+}
 
     .composer-inner {
-      width: min(760px, 100%);
-      margin: 0 auto;
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      padding: 12px;
-      border: 1px solid #eadfce;
-      border-radius: 26px;
-      background: rgba(255, 250, 243, 0.92);
-      box-shadow: 0 12px 36px rgba(80, 55, 30, 0.08);
-    }
+  width: min(760px, 100%);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #eadfce;
+  border-radius: 22px;
+  background: rgba(255, 250, 243, 0.92);
+  box-shadow: 0 12px 36px rgba(80, 55, 30, 0.08);
+}
 
     textarea {
-      flex: 1;
-      min-height: 54px;
-      max-height: 160px;
-      border: 0;
-      outline: 0;
-      resize: none;
-      color: #3b2f2f;
-      background: transparent;
-      font-size: 17px;
-      line-height: 1.6;
-      font-family: inherit;
-      padding: 10px;
-    }
+  flex: 1;
+  min-height: 40px;
+  max-height: 120px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  color: #3b2f2f;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1.45;
+  font-family: inherit;
+  padding: 6px 8px;
+}
 
     textarea::placeholder {
       color: #a99a8d;
     }
 
     .send-button {
-      flex: 0 0 auto;
-      border: 0;
-      border-radius: 999px;
-      padding: 14px 20px;
-      color: #fffaf3;
-      background: #8a5a2b;
-      font-size: 16px;
-      cursor: pointer;
-    }
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 17px;
+  color: #fffaf3;
+  background: #8a5a2b;
+  font-size: 15px;
+  cursor: pointer;
+}
 
     .send-button:disabled,
     .light-button:disabled {
@@ -243,33 +244,66 @@
     }
 
     @media (max-width: 520px) {
-      header {
-        padding-top: 28px;
-      }
+  header {
+    padding: 18px 12px 12px;
+  }
 
-      nav {
-        gap: 9px;
-      }
+  h1 {
+    margin-bottom: 12px;
+    font-size: 30px;
+  }
 
-      nav a,
-      nav button {
-        padding: 8px 15px;
-        font-size: 15px;
-      }
+  nav {
+    gap: 8px;
+  }
 
-      .bubble {
-        max-width: 92%;
-        font-size: 16px;
-      }
+  nav a,
+  nav button {
+    padding: 7px 13px;
+    font-size: 14px;
+  }
 
-      .composer-inner {
-        border-radius: 24px;
-      }
+  .mini-tools {
+    margin-top: 8px;
+  }
 
-      .send-button {
-        padding: 13px 18px;
-      }
-    }
+  .tool-button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  main {
+    padding-top: 18px;
+  }
+
+  .room-note {
+    font-size: 11px;
+    padding: 5px 12px;
+    margin: 10px auto;
+    line-height: 1.4;
+  }
+
+  .bubble {
+    max-width: 92%;
+    font-size: 16px;
+  }
+
+  .composer-inner {
+    border-radius: 22px;
+    padding: 8px 9px;
+  }
+
+  textarea {
+    min-height: 38px;
+    font-size: 16px;
+    padding: 5px 7px;
+  }
+
+  .send-button {
+    padding: 10px 16px;
+    font-size: 15px;
+  }
+}
   </style>
 </head>
 
