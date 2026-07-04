@@ -269,6 +269,10 @@ app.post("/chat", async (req, res) => {
 
     lastResponseId = response.id;
 
+    if (response.usage) {
+  console.log("💰 本轮 token 用量：", JSON.stringify(response.usage, null, 2));
+}
+
     const safeClientTurnCount = Number(clientTurnCount);
     if (Number.isFinite(safeClientTurnCount) && safeClientTurnCount >= 0) {
       sessionTurnCount = safeClientTurnCount + 1;
