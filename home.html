@@ -314,14 +314,16 @@ nav button,
     <nav>
       <button class="light-button" id="lightButton" onclick="turnOnLight()">开灯</button>
       <a href="memory.html">核心</a>
-      <a href="diary.html">日记</a>
-      <a href="about.html">关于</a>
+<a href="diary.html">日记</a>
+<a href="archive.html">档案</a>
+<a href="about.html">关于</a>
     </nav>
 
     <div class="mini-tools">
-      <button class="tool-button" onclick="exportChat()">导出聊天</button>
-      <button class="tool-button" onclick="clearChatDisplay()">清空屏幕</button>
-    </div>
+  <button class="tool-button" onclick="exportChat()">导出聊天</button>
+  <button class="tool-button" onclick="clearChatDisplay()">清空屏幕</button>
+  <button class="tool-button" onclick="archiveCurrentChat()">归档本段</button>
+</div>
   </header>
 
   <main id="chatLog"></main>
@@ -338,8 +340,9 @@ nav button,
   </section>
 
   <script>
-    const CHAT_STORAGE_KEY = "home404.chat.v1";
-    const SESSION_STORAGE_KEY = "home404.session.v1";
+   const CHAT_STORAGE_KEY = "home404.chat.v1";
+const SESSION_STORAGE_KEY = "home404.session.v1";
+const ARCHIVE_STORAGE_KEY = "home404.archive.v1";
 
     const chatLog = document.getElementById("chatLog");
     const messageInput = document.getElementById("messageInput");
@@ -699,6 +702,95 @@ nav button,
       chatLog.innerHTML = "";
       renderStatus("聊天屏幕已经清空。今天的灯还在。", false);
     }
+
+    function loadArchiveEntries() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ARCHIVE_STORAGE_KEY));
+
+    if (!Array.isArray(saved)) {
+      return [];
+    }
+
+    return saved;
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveArchiveEntries(entries) {
+  const safeEntries = entries.slice(0, 100);
+  localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(safeEntries));
+}
+
+function createArchiveTitle(messages) {
+  const firstUserMessage = messages.find((entry) => {
+    return entry.role === "user" && entry.content && entry.content.trim();
+  });
+
+  const source = firstUserMessage
+    ? firstUserMessage.content
+    : "未命名聊天";
+
+  const compact = source.replace(/\s+/g, " ").trim();
+
+  if (!compact) {
+    return "未命名聊天";
+  }
+
+  return compact.length > 24 ? `${compact.slice(0, 24)}…` : compact;
+}
+
+function archiveCurrentChat() {
+  const dialogMessages = chatMessages.filter((entry) => {
+    return entry.role === "user" || entry.role === "assistant";
+  });
+
+  if (dialogMessages.length === 0) {
+    renderStatus("现在还没有可以归档的聊天。");
+    return;
+  }
+
+  const ok = confirm(
+    "确认把当前这段聊天归档吗？这只会保存到当前浏览器本地，不会上传服务器，也不会清空屏幕。"
+  );
+
+  if (!ok) {
+    return;
+  }
+
+  const now = new Date();
+  const archiveEntries = loadArchiveEntries();
+
+  const entry = {
+    id: `archive-${now.getTime()}`,
+    date: getTodayKey(),
+    createdAt: now.toISOString(),
+    title: createArchiveTitle(dialogMessages),
+    turnCount:
+      typeof sessionState.turnCount === "number"
+        ? sessionState.turnCount
+        : dialogMessages.filter((item) => item.role === "user").length,
+    messageCount: dialogMessages.length,
+    summary: "",
+    messages: dialogMessages.map((item) => {
+      return {
+        role: item.role,
+        content: item.content,
+        time: item.time || now.toISOString(),
+      };
+    }),
+  };
+
+  archiveEntries.unshift(entry);
+
+  try {
+    saveArchiveEntries(archiveEntries);
+    renderStatus("这段聊天已归档。");
+  } catch (error) {
+    console.error(error);
+    renderStatus("归档失败了，可能是浏览器本地存储空间不够。");
+  }
+}
 
     function autoResizeTextarea() {
       messageInput.style.height = "auto";
