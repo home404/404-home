@@ -21,6 +21,11 @@ let sessionTurnCount = 0;
 let lastRepairModeAt = null;
 
 app.use(express.json());
+
+app.use("/data", (req, res) => {
+  res.status(404).send("Not found");
+});
+
 app.use(express.static(__dirname));
 
 function getTodayKey() {
