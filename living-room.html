@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
+  <meta name="theme-color" content="#faf9f7" />
+
+  <title>客厅｜404 小窝</title>
+
+  <link
+    rel="stylesheet"
+    href="css/living-room.css"
+  />
+</head>
+
+<body>
+  <main class="living-room-shell">
+
+    <!-- 顶部导航 -->
+    <header class="room-header">
+      <a
+        class="back-home-link"
+        href="home.html"
+        aria-label="返回小窝首页"
+      >
+        ← 返回小窝
+      </a>
+
+      <div class="room-heading">
+        <p class="room-eyebrow">
+          404 HOME · LIVING ROOM
+        </p>
+
+        <h1>
+          客厅
+        </h1>
+
+        <p class="room-description">
+          自由活动、清醒通行证与活动记录
+        </p>
+      </div>
+    </header>
+
+
+    <!-- 当前自由活动 -->
+    <section
+      class="living-panel current-activity-panel"
+      aria-labelledby="currentActivityTitle"
+    >
+      <div class="panel-heading-row">
+        <div>
+          <p class="panel-eyebrow">
+            CURRENT ACTIVITY
+          </p>
+
+          <h2 id="currentActivityTitle">
+            当前自由活动
+          </h2>
+        </div>
+
+        <span
+          class="activity-state"
+          id="activityState"
+        >
+          未在活动
+        </span>
+      </div>
+
+      <div
+        class="empty-state"
+        id="activityEmptyState"
+      >
+        <p class="empty-state-title">
+          客厅现在很安静
+        </p>
+
+        <p class="empty-state-text">
+          目前没有正在进行的自由活动
+        </p>
+      </div>
+
+      <!--
+        正式活动开始后，由 living-room.js 填入：
+        活动名称、剩余时间、步骤、预算与控制状态
+      -->
+      <div
+        class="activity-detail"
+        id="activityDetail"
+        hidden
+      >
+        <p
+          class="activity-title"
+          id="activityTitle"
+        ></p>
+
+        <p
+          class="activity-summary"
+          id="activitySummary"
+        ></p>
+
+        <dl class="activity-facts">
+          <div>
+            <dt>开始时间</dt>
+            <dd id="activityStartedAt">—</dd>
+          </div>
+
+          <div>
+            <dt>剩余时间</dt>
+            <dd id="activityRemainingTime">—</dd>
+          </div>
+
+          <div>
+            <dt>当前步骤</dt>
+            <dd id="activityCurrentStep">—</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+
+    <!-- 清醒通行证 -->
+    <section
+      class="living-panel pass-panel"
+      aria-labelledby="passTitle"
+    >
+      <div class="panel-heading-row">
+        <div>
+          <p class="panel-eyebrow">
+            AWAKE PASS
+          </p>
+
+          <h2 id="passTitle">
+            清醒通行证
+          </h2>
+        </div>
+
+        <span
+          class="pass-number"
+          id="passNumber"
+        >
+          尚未签发
+        </span>
+      </div>
+
+      <div class="pass-content">
+        <div class="pass-mark" aria-hidden="true">
+          404
+        </div>
+
+        <div class="pass-copy">
+          <p class="pass-name">
+            第001号清醒通行证
+          </p>
+
+          <p class="pass-status">
+            等待第一次正式自由活动
+          </p>
+
+          <p class="pass-note">
+            通行证会记录活动时长、权限、预算、步骤和最终报告
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 活动时间线 -->
+    <section
+      class="living-panel timeline-panel"
+      aria-labelledby="timelineTitle"
+    >
+      <div class="panel-heading-row">
+        <div>
+          <p class="panel-eyebrow">
+            TIMELINE
+          </p>
+
+          <h2 id="timelineTitle">
+            活动时间线
+          </h2>
+        </div>
+      </div>
+
+      <ol
+        class="activity-timeline"
+        id="activityTimeline"
+      >
+        <li class="timeline-empty">
+          <span class="timeline-dot" aria-hidden="true"></span>
+
+          <div>
+            <p class="timeline-title">
+              暂无活动记录
+            </p>
+
+            <p class="timeline-text">
+              第一次自由活动开始后，客厅会留下完整脚印
+            </p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+
+    <!-- 预算与调用记录 -->
+    <section
+      class="living-panel usage-panel"
+      aria-labelledby="usageTitle"
+    >
+      <div class="panel-heading-row">
+        <div>
+          <p class="panel-eyebrow">
+            USAGE
+          </p>
+
+          <h2 id="usageTitle">
+            本次活动用量
+          </h2>
+        </div>
+      </div>
+
+      <dl class="usage-grid">
+        <div class="usage-item">
+          <dt>模型调用</dt>
+
+          <dd id="modelCallUsage">
+            0 / 0
+          </dd>
+        </div>
+
+        <div class="usage-item">
+          <dt>输入 Token</dt>
+
+          <dd id="inputTokenUsage">
+            0
+          </dd>
+        </div>
+
+        <div class="usage-item">
+          <dt>输出 Token</dt>
+
+          <dd id="outputTokenUsage">
+            0
+          </dd>
+        </div>
+
+        <div class="usage-item">
+          <dt>预计费用</dt>
+
+          <dd id="estimatedCost">
+            $0.00
+          </dd>
+        </div>
+      </dl>
+
+      <p class="usage-note">
+        暂无活动时显示为零；真实记录将由后台 Worker 自动写入
+      </p>
+    </section>
+
+
+    <footer class="room-footer">
+      <span>
+        404 小窝 · 客厅
+      </span>
+
+      <a href="home.html">
+        回到总览
+      </a>
+    </footer>
+
+  </main>
+
+  <script src="js/living-room.js"></script>
+</body>
+</html>

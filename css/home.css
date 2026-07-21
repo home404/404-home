@@ -1,0 +1,547 @@
+:root {
+  --page-bg: #faf9f7;
+  --card-bg: #ffffff;
+  --soft-bg: #f5f3ef;
+  --soft-bg-strong: #efebe5;
+
+  --text-main: #302d29;
+  --text-soft: #817b73;
+  --text-faint: #aaa39a;
+
+  --border: #e8e4dd;
+  --border-strong: #ded8cf;
+
+  --accent: #94704d;
+  --accent-soft: #f2e9df;
+
+  --success: #667c68;
+  --success-soft: #edf3ed;
+
+  --shadow-soft:
+    0 18px 45px rgba(68, 58, 48, 0.06);
+
+  --radius-large: 28px;
+  --radius-medium: 22px;
+  --radius-small: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--page-bg);
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--text-main);
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.home-shell {
+  width: min(100%, 980px);
+  margin: 0 auto;
+
+  padding:
+    max(24px, env(safe-area-inset-top))
+    18px
+    max(36px, calc(env(safe-area-inset-bottom) + 24px));
+}
+
+
+/* ------------------------------
+   顶部状态大卡
+------------------------------ */
+
+.status-card {
+  position: relative;
+  overflow: hidden;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(118px, 0.75fr);
+  gap: 14px;
+
+  min-height: 250px;
+  padding: 24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #fbfaf8 58%,
+      #f5f1ec 100%
+    );
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+
+  box-shadow: var(--shadow-soft);
+}
+
+.status-card::before {
+  content: "";
+  position: absolute;
+  top: -78px;
+  right: -58px;
+
+  width: 190px;
+  height: 190px;
+
+  border-radius: 50%;
+  background: rgba(226, 215, 203, 0.32);
+}
+
+.status-content {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.home-date {
+  margin: 0 0 16px;
+
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.status-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 26px;
+}
+
+.status-heading h1 {
+  min-width: 0;
+  margin: 0;
+
+  font-size: clamp(25px, 6vw, 34px);
+  font-weight: 720;
+  line-height: 1.16;
+  letter-spacing: -0.035em;
+}
+
+.status-dot {
+  flex: 0 0 auto;
+
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+  background: var(--success);
+
+  box-shadow:
+    0 0 0 6px var(--success-soft);
+}
+
+.status-list {
+  display: grid;
+  gap: 11px;
+
+  margin-top: auto;
+}
+
+.status-item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 10px;
+
+  min-width: 0;
+}
+
+.status-label {
+  color: var(--text-faint);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.status-value {
+  overflow: hidden;
+
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 600;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* ------------------------------
+   狐狸图片区
+------------------------------ */
+
+.fox-panel {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 0;
+}
+
+.fox-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  min-height: 180px;
+
+  padding: 12px;
+
+  border: 1px dashed var(--border-strong);
+  border-radius: 22px;
+
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.fox-placeholder-icon {
+  font-size: 52px;
+  line-height: 1;
+}
+
+.fox-placeholder-text {
+  margin-top: 10px;
+
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
+}
+
+
+/* 以后放正式狐狸图时直接使用这个类 */
+.status-fox-image {
+  display: block;
+
+  width: 100%;
+  max-width: 220px;
+  max-height: 220px;
+
+  object-fit: contain;
+}
+
+
+/* ------------------------------
+   房间区域
+------------------------------ */
+
+.rooms-section {
+  margin-top: 34px;
+}
+
+.section-heading {
+  margin-bottom: 16px;
+}
+
+.section-eyebrow {
+  margin: 0 0 5px;
+
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.section-heading h2 {
+  margin: 0;
+
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.room-card {
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 178px;
+  padding: 18px;
+
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+
+  box-shadow:
+    0 10px 28px rgba(68, 58, 48, 0.035);
+
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.room-card.is-ready {
+  cursor: pointer;
+}
+
+.room-card.is-ready:active {
+  transform: scale(0.975);
+}
+
+.room-icon {
+  display: grid;
+  place-items: center;
+
+  width: 42px;
+  height: 42px;
+
+  margin-bottom: 19px;
+
+  border-radius: 14px;
+  background: var(--soft-bg);
+
+  font-size: 21px;
+}
+
+.room-icon-wide {
+  font-size: 13px;
+  letter-spacing: -0.04em;
+}
+
+.room-copy {
+  min-width: 0;
+}
+
+.room-copy h3 {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 690;
+  letter-spacing: -0.02em;
+}
+
+.room-copy p {
+  margin: 7px 0 25px;
+
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.room-state {
+  display: inline-flex;
+  align-items: center;
+
+  width: fit-content;
+  margin-top: auto;
+
+  padding: 6px 9px;
+
+  border-radius: 999px;
+
+  color: var(--text-soft);
+  background: var(--soft-bg);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.room-card.is-ready .room-state {
+  color: var(--success);
+  background: var(--success-soft);
+}
+
+.room-card.is-building {
+  color: #777169;
+  background: #f8f7f4;
+}
+
+.room-card.is-building .room-icon {
+  filter: grayscale(0.35);
+  opacity: 0.7;
+}
+
+.room-card.is-building .room-copy,
+.room-card.is-building .room-state {
+  opacity: 0.72;
+}
+
+
+/* ------------------------------
+   页脚
+------------------------------ */
+
+.home-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 34px;
+  padding: 18px 4px 0;
+
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+.home-footer a {
+  padding: 8px 0;
+
+  color: var(--text-soft);
+}
+
+
+/* ------------------------------
+   较宽屏幕
+------------------------------ */
+
+@media (min-width: 700px) {
+  .home-shell {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .status-card {
+    min-height: 300px;
+    padding: 32px;
+  }
+
+  .rooms-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .room-card {
+    min-height: 195px;
+    padding: 21px;
+  }
+}
+
+
+/* ------------------------------
+   较窄手机
+------------------------------ */
+
+@media (max-width: 390px) {
+  .home-shell {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .status-card {
+    grid-template-columns: minmax(0, 1.3fr) minmax(102px, 0.7fr);
+
+    min-height: 240px;
+    padding: 20px;
+  }
+
+  .status-heading {
+    margin-bottom: 22px;
+  }
+
+  .status-item {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .fox-placeholder {
+    min-height: 164px;
+  }
+
+  .room-card {
+    min-height: 168px;
+    padding: 16px;
+  }
+
+  .room-copy p {
+    font-size: 12px;
+  }
+}
+
+
+/* ------------------------------
+   极窄屏幕
+------------------------------ */
+
+@media (max-width: 340px) {
+  .status-card {
+    grid-template-columns: 1fr;
+  }
+
+  .fox-panel {
+    display: none;
+  }
+
+  .rooms-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .room-card {
+    min-height: 150px;
+  }
+}
+
+
+/* ------------------------------
+   鼠标设备
+------------------------------ */
+
+@media (hover: hover) and (pointer: fine) {
+  .room-card.is-ready:hover {
+    transform: translateY(-3px);
+
+    border-color: var(--border-strong);
+
+    box-shadow:
+      0 16px 36px rgba(68, 58, 48, 0.07);
+  }
+
+  .home-footer a:hover {
+    color: var(--accent);
+  }
+}
+
+
+/* ------------------------------
+   减少动画偏好
+------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .room-card {
+    transition: none;
+  }
+}

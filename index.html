@@ -9,22 +9,250 @@
 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
-    <head>
-<title>404 小窝</title>
-  <link rel="stylesheet" type="text/css" href="./css/style.css">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
+  <meta name="theme-color" content="#fbfbfa" />
+
+  <title>404</title>
+
+  <style>
+    :root {
+      --page-bg: #fbfbfa;
+      --text-main: #171717;
+      --text-soft: #989898;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: var(--page-bg);
+      color: var(--text-main);
+
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Text",
+        "PingFang SC",
+        "Microsoft YaHei",
+        sans-serif;
+
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .entry-page {
+      min-height: 100svh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding:
+        max(24px, env(safe-area-inset-top))
+        24px
+        max(28px, calc(env(safe-area-inset-bottom) + 20px));
+    }
+
+    .entry-content {
+  width: 100%;
+  max-width: 420px;
+
+  text-align: center;
+  transform: translateY(-2vh);
+}
+
+    .entry-code {
+  margin: 0 0 14px;
+
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.entry-page-title {
+  margin: 0 0 52px;
+
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+    .entry-line {
+      margin: 0;
+
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .entry-gap {
+      margin-top: 4px;
+    }
+
+    .entry-home {
+      margin-top: 14px;
+
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .enter-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 144px;
+      min-height: 54px;
+
+      margin-top: 34px;
+      padding: 12px 24px;
+
+      border: 2px solid #171717;
+      border-radius: 11px;
+
+      background: transparent;
+      color: #171717;
+
+      font-size: 16px;
+      font-weight: 400;
+      text-decoration: none;
+
+      -webkit-tap-highlight-color: transparent;
+
+      transition:
+        background-color 150ms ease,
+        color 150ms ease,
+        transform 150ms ease;
+    }
+
+    .enter-link:hover,
+    .enter-link:focus-visible {
+      background: #171717;
+      color: #ffffff;
+    }
+
+    .enter-link:focus-visible {
+      outline: 3px solid rgba(23, 23, 23, 0.16);
+      outline-offset: 4px;
+    }
+
+    .enter-link:active {
+      transform: scale(0.97);
+      background: #171717;
+      color: #ffffff;
+    }
+
+    .entry-footer {
+      margin: 18px 0 0;
+
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+   @media (max-width: 600px) {
+  .entry-content {
+    max-width: 360px;
+    transform: translateY(-1.5vh);
+  }
+
+.entry-code {
+  font-size: 52px;
+}
+
+.entry-page-title {
+  margin-bottom: 58px;
+
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.entry-code {
+  margin-bottom: 14px;
+}
+
+.entry-page-title {
+  margin-bottom: 58px;
+}
+
+  .entry-line {
+    font-size: 17px;
+    line-height: 1.85;
+  }
+
+  .entry-home {
+    margin-top: 16px;
+
+    font-size: 24px;
+    line-height: 1.45;
+  }
+
+  .enter-link {
+    width: 156px;
+    min-height: 56px;
+
+    margin-top: 36px;
+
+    font-size: 17px;
+  }
+
+  .entry-footer {
+    margin-top: 19px;
+
+    font-size: 14px;
+  }
+}
+
+    @media (prefers-reduced-motion: reduce) {
+      .enter-link {
+        transition: none;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>404</h1>
+  <main class="entry-page">
+    <section class="entry-content" aria-labelledby="entryTitle">
+      <h1 class="entry-code" id="entryTitle">
+  404
+</h1>
 
-        <p>你要找的页面不存在。</p>
+<p class="entry-page-title">
+  你要找的页面不存在
+</p>
 
-        <p>但是……</p>
+<p class="entry-line entry-gap">
+  但是……
+</p>
 
-        <h2>404 小窝欢迎你。🏠</h2>
-        <a href="home.html">Enter</a>
+<p class="entry-line entry-home">
+  404 小窝欢迎你
+</p>
 
-        <p class="welcome">欢迎回家。</p>
-    </div>
+      <a class="enter-link" href="home.html">
+        Enter
+      </a>
+
+      <p class="entry-footer">
+        欢迎回家
+      </p>
+    </section>
+  </main>
 </body>
 </html>
