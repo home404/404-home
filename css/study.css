@@ -1,0 +1,773 @@
+:root {
+  --page-bg: #f8f6f1;
+  --paper: #fffefb;
+  --paper-soft: #f4f0e8;
+  --paper-deep: #ebe4d9;
+
+  --text-main: #302d29;
+  --text-soft: #7d766d;
+  --text-faint: #aaa197;
+
+  --border: #e6dfd5;
+  --border-strong: #d8cfc3;
+
+  --accent: #8e6d4d;
+  --accent-soft: #f1e8dc;
+
+  --shadow:
+    0 18px 46px rgba(66, 55, 45, 0.05);
+
+  --radius-large: 28px;
+  --radius-medium: 20px;
+  --radius-small: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--page-bg);
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.48),
+      transparent 240px
+    ),
+    var(--page-bg);
+
+  color: var(--text-main);
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+.study-shell {
+  width: min(100%, 900px);
+  margin: 0 auto;
+
+  padding:
+    max(24px, env(safe-area-inset-top))
+    18px
+    max(36px, calc(env(safe-area-inset-bottom) + 24px));
+}
+
+
+/* ------------------------------
+   顶部
+------------------------------ */
+
+.study-header {
+  padding: 6px 2px 28px;
+}
+
+.back-home-link {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 42px;
+  padding: 0 2px;
+
+  color: var(--text-soft);
+  font-size: 14px;
+  font-weight: 600;
+
+  transition: color 150ms ease;
+}
+
+.study-heading {
+  margin-top: 24px;
+}
+
+.study-eyebrow,
+.panel-eyebrow {
+  margin: 0 0 7px;
+
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.study-heading h1 {
+  margin: 0;
+
+  font-family:
+    "Songti SC",
+    "STSong",
+    "SimSun",
+    serif;
+
+  font-size: clamp(38px, 9vw, 56px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.study-description {
+  margin: 14px 0 0;
+
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+
+/* ------------------------------
+   栏目标签
+------------------------------ */
+
+.study-tabs {
+  display: flex;
+  gap: 8px;
+
+  overflow-x: auto;
+
+  margin-bottom: 18px;
+  padding: 4px;
+
+  border: 1px solid var(--border);
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.56);
+
+  scrollbar-width: none;
+}
+
+.study-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.study-tab {
+  flex: 1 0 auto;
+
+  min-height: 42px;
+  padding: 9px 15px;
+
+  border: 0;
+  border-radius: 14px;
+
+  background: transparent;
+  color: var(--text-soft);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.study-tab.is-active {
+  background: var(--paper);
+  color: var(--text-main);
+
+  box-shadow:
+    0 5px 14px rgba(73, 60, 47, 0.06);
+}
+
+
+/* ------------------------------
+   栏目面板
+------------------------------ */
+
+.study-panel {
+  min-height: 360px;
+  padding: 22px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(255, 253, 248, 0.82)
+    );
+
+  box-shadow: var(--shadow);
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-heading h2 {
+  margin: 0;
+
+  font-family:
+    "Songti SC",
+    "STSong",
+    "SimSun",
+    serif;
+
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.panel-count {
+  flex: 0 0 auto;
+
+  padding: 5px 8px;
+
+  border-radius: 999px;
+
+  background: var(--paper-soft);
+  color: var(--text-faint);
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+
+/* ------------------------------
+   空状态
+------------------------------ */
+
+.entry-list {
+  display: grid;
+  gap: 16px;
+}
+
+.study-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+
+  min-height: 230px;
+  padding: 26px;
+
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-medium);
+
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.empty-state-title {
+  margin: 0;
+
+  font-family:
+    "Songti SC",
+    "STSong",
+    "SimSun",
+    serif;
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.empty-state-text {
+  margin: 10px 0 0;
+
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.legacy-entry-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 40px;
+
+  margin-top: 20px;
+  padding: 9px 14px;
+
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+
+  background: var(--paper);
+  color: var(--accent);
+
+  font-size: 12px;
+  font-weight: 650;
+}
+
+
+/* ------------------------------
+   内容卡片
+------------------------------ */
+
+.study-entry {
+  padding: 24px;
+
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+
+  background: var(--paper);
+
+  box-shadow:
+    0 10px 28px rgba(68, 55, 43, 0.035);
+}
+
+.entry-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 18px;
+}
+
+.entry-type {
+  margin: 0 0 6px;
+
+  color: var(--text-faint);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.entry-title {
+  margin: 0;
+
+  font-family:
+    "Songti SC",
+    "STSong",
+    "SimSun",
+    serif;
+
+  font-size: 23px;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+/*
+  时间刻意做得很小。
+  它负责定位，不负责抢正文镜头。
+*/
+.entry-time {
+  padding-top: 4px;
+
+  color: var(--text-faint);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+
+/* ------------------------------
+   心情与检索标签
+------------------------------ */
+
+.entry-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin-top: 14px;
+}
+
+.entry-mood {
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.entry-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+/*
+  标签主要给检索使用。
+  故意降低视觉权重。
+*/
+.entry-tags span {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 3px 6px;
+
+  border: 1px solid var(--border);
+  border-radius: 999px;
+
+  background: transparent;
+  color: var(--text-faint);
+
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+
+/* ------------------------------
+   正文
+------------------------------ */
+
+.entry-body {
+  margin-top: 22px;
+
+  color: var(--text-main);
+  font-size: 15px;
+  line-height: 1.9;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.entry-body p {
+  margin: 0 0 1em;
+}
+
+.entry-body p:last-child {
+  margin-bottom: 0;
+}
+
+
+/* ------------------------------
+   评论区
+------------------------------ */
+
+.comments-section {
+  margin-top: 28px;
+  padding-top: 22px;
+
+  border-top: 1px solid var(--border);
+}
+
+.comments-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comments-heading h4 {
+  margin: 0;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.comment-count {
+  color: var(--text-faint);
+  font-size: 10px;
+}
+
+.comment-list {
+  display: grid;
+  gap: 12px;
+
+  margin-top: 16px;
+}
+
+.comments-empty {
+  margin: 0;
+
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+.comment-item {
+  padding: 14px;
+
+  border-radius: 14px;
+  background: var(--paper-soft);
+}
+
+.comment-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.comment-header strong {
+  font-size: 12px;
+}
+
+.comment-header time {
+  color: var(--text-faint);
+  font-size: 9px;
+}
+
+.comment-body {
+  margin: 8px 0 0;
+
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.comment-replies {
+  display: grid;
+  gap: 8px;
+
+  margin-top: 12px;
+  padding-left: 14px;
+
+  border-left: 2px solid var(--border);
+}
+
+.comment-form {
+  display: grid;
+  gap: 10px;
+
+  margin-top: 18px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  resize: vertical;
+
+  min-height: 88px;
+  padding: 13px 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text-main);
+
+  font-size: 13px;
+  line-height: 1.65;
+
+  outline: none;
+
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.comment-form textarea:focus {
+  border-color: var(--border-strong);
+
+  box-shadow:
+    0 0 0 3px rgba(142, 109, 77, 0.08);
+}
+
+.comment-form textarea::placeholder {
+  color: var(--text-faint);
+}
+
+.comment-form button {
+  justify-self: end;
+
+  min-height: 38px;
+  padding: 8px 14px;
+
+  border: 1px solid var(--text-main);
+  border-radius: 11px;
+
+  background: var(--text-main);
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+
+/* ------------------------------
+   页脚
+------------------------------ */
+
+.study-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 28px;
+  padding: 18px 4px 0;
+
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+.study-footer a {
+  padding: 8px 0;
+
+  color: var(--text-soft);
+}
+
+
+/* ------------------------------
+   辅助隐藏
+------------------------------ */
+
+.visually-hidden {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  padding: 0;
+  margin: -1px;
+
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ------------------------------
+   较宽屏幕
+------------------------------ */
+
+@media (min-width: 720px) {
+  .study-shell {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .study-header {
+    padding-top: 18px;
+    padding-bottom: 36px;
+  }
+
+  .study-panel {
+    padding: 28px;
+  }
+
+  .study-entry {
+    padding: 30px;
+  }
+}
+
+
+/* ------------------------------
+   手机
+------------------------------ */
+
+@media (max-width: 600px) {
+  .study-shell {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .study-header {
+    padding-bottom: 22px;
+  }
+
+  .study-heading {
+    margin-top: 18px;
+  }
+
+  .study-heading h1 {
+    font-size: 42px;
+  }
+
+  .study-tabs {
+    gap: 5px;
+  }
+
+  .study-tab {
+    min-height: 40px;
+    padding: 8px 12px;
+
+    font-size: 12px;
+  }
+
+  .study-panel {
+    min-height: 340px;
+    padding: 19px;
+
+    border-radius: 24px;
+  }
+
+  .study-entry {
+    padding: 19px;
+  }
+
+  .entry-header {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .entry-time {
+    padding-top: 0;
+
+    font-size: 9px;
+  }
+
+  .entry-title {
+    font-size: 21px;
+  }
+
+  .entry-body {
+    font-size: 14px;
+    line-height: 1.85;
+  }
+}
+
+
+/* ------------------------------
+   极窄手机
+------------------------------ */
+
+@media (max-width: 360px) {
+  .study-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .comment-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+
+/* ------------------------------
+   鼠标设备
+------------------------------ */
+
+@media (hover: hover) and (pointer: fine) {
+  .back-home-link:hover,
+  .study-footer a:hover {
+    color: var(--accent);
+  }
+
+  .study-tab:hover:not(.is-active) {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.42);
+  }
+
+  .legacy-entry-link:hover {
+    border-color: var(--accent);
+  }
+}

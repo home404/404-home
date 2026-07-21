@@ -2,8 +2,8 @@ require("dotenv").config();
 
 const express = require("express");
 const OpenAI = require("openai");
-const path = require("path");
-const fs = require("fs");
+const fs = require("node:fs");
+const path = require("node:path");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
@@ -69,6 +69,147 @@ app.use(express.json());
 app.use("/data", (req, res) => {
   res.status(404).send("Not found");
 });
+
+/* ========================================
+   OAuth 授权页
+======================================== */
+
+app.get("/oauth/consent", (req, res) => {
+  res.set("Cache-Control", "no-store");
+
+  res.sendFile(
+    path.join(
+      __dirname,
+      "oauth-consent.html"
+    )
+  );
+});
+
+
+/* ========================================
+   浏览器公开配置
+   这里只返回可公开的 Supabase 配置
+======================================== */
+
+app.get("/api/public-config", (req, res) => {
+  const supabaseUrl =
+    process.env.SUPABASE_URL;
+
+  const supabasePublishableKey =
+    process.env.SUPABASE_PUBLISHABLE_KEY;
+
+
+  if (
+    !supabaseUrl ||
+    !supabasePublishableKey
+  ) {
+    return res.status(503).json({
+      ok: false,
+      error: "public_config_unavailable"
+    });
+  }
+
+
+  res.set("Cache-Control", "no-store");
+
+  return res.json({
+    supabaseUrl,
+    supabasePublishableKey
+  });
+});
+
+/* ========================================
+   404 Core MCP
+   CommonJS 主服务通过动态 import 接入 ESM 模块
+======================================== */
+
+let mcpRouteModulePromise = null;
+
+
+function loadMcpRouteModule() {
+  if (!mcpRouteModulePromise) {
+    mcpRouteModulePromise =
+      import("./routes/mcp-route.mjs");
+  }
+
+  return mcpRouteModulePromise;
+}
+
+
+function createMcpRouteHandler(
+  exportName
+) {
+  return async (
+    req,
+    res,
+    next
+  ) => {
+    try {
+      const routeModule =
+        await loadMcpRouteModule();
+
+      const handler =
+        routeModule[exportName];
+
+
+      if (
+        typeof handler !== "function"
+      ) {
+        throw new Error(
+          `MCP handler not found: ${exportName}`
+        );
+      }
+
+
+      await handler(
+        req,
+        res
+      );
+    } catch (error) {
+      console.error(
+        "Load MCP route failed:",
+        error
+      );
+
+
+      if (!res.headersSent) {
+        return res.status(500).json({
+          ok: false,
+          error:
+            "mcp_route_unavailable"
+        });
+      }
+
+
+      return next(error);
+    }
+  };
+}
+
+
+/* OAuth Protected Resource Metadata */
+
+app.get(
+  [
+    "/.well-known/oauth-protected-resource",
+    "/.well-known/oauth-protected-resource/mcp"
+  ],
+
+  createMcpRouteHandler(
+    "handleProtectedResourceMetadata"
+  )
+);
+
+
+/* 正式 Streamable HTTP MCP 入口 */
+
+app.all(
+  "/mcp",
+
+  createMcpRouteHandler(
+    "handle404McpRequest"
+  )
+);
 
 app.use(express.static(__dirname));
 
@@ -353,6 +494,27 @@ async function createPlainResponse(message) {
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
+
+/* ========================================
+   旧书房 JSON 接口已停用
+   防止生产环境未经登录读取私人日记
+======================================== */
+
+app.get(
+  "/api/study/diary",
+  (req, res) => {
+    res.set(
+      "Cache-Control",
+      "no-store"
+    );
+
+    return res.status(401).json({
+      ok: false,
+      error:
+        "study_auth_required"
+    });
+  }
+);
 
 app.get("/status", async (req, res) => {
   const todayKey = getTodayKey();

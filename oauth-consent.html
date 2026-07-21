@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>404 小窝 · 访问授权</title>
+
+  <style>
+    :root {
+      color-scheme: light;
+
+      --page: #f5f0e7;
+      --card: rgba(255, 252, 246, 0.96);
+      --ink: #28231f;
+      --muted: #766e67;
+      --line: rgba(70, 58, 48, 0.13);
+      --accent: #292521;
+      --soft: #eee5d8;
+      --danger: #9c3c34;
+      --shadow: 0 22px 70px rgba(67, 52, 40, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+
+      display: grid;
+      place-items: center;
+
+      font-family:
+        Inter,
+        "PingFang SC",
+        "Microsoft YaHei",
+        system-ui,
+        sans-serif;
+
+      color: var(--ink);
+
+      background:
+        radial-gradient(
+          circle at 20% 10%,
+          rgba(255, 255, 255, 0.92),
+          transparent 35%
+        ),
+        linear-gradient(
+          145deg,
+          #f7f2ea,
+          #ebe2d5
+        );
+    }
+
+    .shell {
+      width: min(100%, 540px);
+    }
+
+    .brand {
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .brand-mark {
+      display: inline-grid;
+      place-items: center;
+
+      width: 58px;
+      height: 58px;
+
+      margin-bottom: 10px;
+
+      border: 1px solid var(--line);
+      border-radius: 20px;
+
+      background: rgba(255, 255, 255, 0.62);
+
+      font-size: 28px;
+      box-shadow: 0 10px 30px rgba(67, 52, 40, 0.08);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+    }
+
+    .brand p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .card {
+      padding: 28px;
+
+      border: 1px solid var(--line);
+      border-radius: 28px;
+
+      background: var(--card);
+      box-shadow: var(--shadow);
+
+      backdrop-filter: blur(20px);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .section-title {
+      margin: 0 0 8px;
+      font-size: 21px;
+    }
+
+    .section-copy {
+      margin: 0 0 24px;
+
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+
+      margin-bottom: 16px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    input {
+      width: 100%;
+      min-height: 48px;
+
+      padding: 0 14px;
+
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      outline: none;
+
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+
+      font: inherit;
+    }
+
+    input:focus {
+      border-color: rgba(40, 35, 31, 0.42);
+      box-shadow: 0 0 0 4px rgba(40, 35, 31, 0.07);
+    }
+
+    button {
+      min-height: 46px;
+
+      padding: 0 18px;
+
+      border: 0;
+      border-radius: 14px;
+
+      font: inherit;
+      font-weight: 700;
+
+      cursor: pointer;
+      transition:
+        transform 120ms ease,
+        opacity 120ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    .primary-button {
+      width: 100%;
+      background: var(--accent);
+      color: #fffaf3;
+    }
+
+    .secondary-button {
+      background: var(--soft);
+      color: var(--ink);
+    }
+
+    .danger-button {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(156, 60, 52, 0.22);
+    }
+
+    .request-card {
+      margin: 20px 0;
+
+      padding: 18px;
+
+      border: 1px solid var(--line);
+      border-radius: 18px;
+
+      background: rgba(246, 240, 231, 0.72);
+    }
+
+    .request-row {
+      display: grid;
+      grid-template-columns: 100px minmax(0, 1fr);
+      gap: 12px;
+
+      padding: 9px 0;
+
+      border-bottom: 1px solid var(--line);
+    }
+
+    .request-row:last-child {
+      border-bottom: 0;
+    }
+
+    .request-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .request-value {
+      min-width: 0;
+
+      overflow-wrap: anywhere;
+
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.55;
+    }
+
+    .scope-list {
+      display: grid;
+      gap: 9px;
+
+      margin: 14px 0 0;
+      padding: 0;
+
+      list-style: none;
+    }
+
+    .scope-item {
+      padding: 11px 13px;
+
+      border: 1px solid var(--line);
+      border-radius: 13px;
+
+      background: rgba(255, 255, 255, 0.68);
+
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .decision-actions {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 12px;
+
+      margin-top: 22px;
+    }
+
+    .session-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+
+      margin-bottom: 18px;
+
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .text-button {
+      min-height: auto;
+      padding: 5px 0;
+
+      border-radius: 0;
+
+      background: transparent;
+      color: var(--muted);
+
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .message {
+      margin-top: 16px;
+      padding: 12px 14px;
+
+      border-radius: 13px;
+
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .message.error {
+      border: 1px solid rgba(156, 60, 52, 0.18);
+      background: rgba(156, 60, 52, 0.07);
+      color: var(--danger);
+    }
+
+    .message.info {
+      border: 1px solid var(--line);
+      background: rgba(238, 229, 216, 0.65);
+      color: var(--muted);
+    }
+
+    .loading {
+      padding: 30px 10px;
+      text-align: center;
+
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .footer-note {
+      margin: 15px auto 0;
+
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 22px;
+        border-radius: 23px;
+      }
+
+      .request-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+
+      .decision-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="shell">
+    <header class="brand">
+      <div class="brand-mark">🦊</div>
+
+      <h1>404 小窝</h1>
+
+      <p>私人入口 · 访问授权</p>
+    </header>
+
+    <section class="card">
+      <div id="loadingView" class="loading">
+        正在核对来访申请……
+      </div>
+
+      <div id="loginView" class="hidden">
+        <h2 class="section-title">屋主登录</h2>
+
+        <p class="section-copy">
+          请先登录你的 404 小窝账号，再决定是否允许这个插件进入。
+        </p>
+
+        <form id="loginForm">
+          <div class="field">
+            <label for="emailInput">邮箱</label>
+
+            <input
+              id="emailInput"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="passwordInput">密码</label>
+
+            <input
+              id="passwordInput"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <button
+            id="loginButton"
+            class="primary-button"
+            type="submit"
+          >
+            登录并继续
+          </button>
+        </form>
+      </div>
+
+      <div id="consentView" class="hidden">
+        <div class="session-line">
+          <span>
+            当前屋主：
+            <strong id="currentUser">—</strong>
+          </span>
+
+          <button
+            id="signOutButton"
+            class="text-button"
+            type="button"
+          >
+            换个账号
+          </button>
+        </div>
+
+        <h2 class="section-title">
+          允许它进入 404 小窝吗？
+        </h2>
+
+        <p class="section-copy">
+          下面这个应用正在申请访问。确认名称、回调地址和权限后再开门。
+        </p>
+
+        <div class="request-card">
+          <div class="request-row">
+            <span class="request-label">申请应用</span>
+            <span
+              id="clientName"
+              class="request-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div class="request-row">
+            <span class="request-label">返回地址</span>
+            <span
+              id="redirectUri"
+              class="request-value"
+            >
+              —
+            </span>
+          </div>
+
+          <div>
+            <p class="request-label">
+              申请权限
+            </p>
+
+            <ul
+              id="scopeList"
+              class="scope-list"
+            ></ul>
+          </div>
+        </div>
+
+        <div class="decision-actions">
+          <button
+            id="denyButton"
+            class="danger-button"
+            type="button"
+          >
+            拒绝
+          </button>
+
+          <button
+            id="approveButton"
+            class="primary-button"
+            type="button"
+          >
+            允许进入
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="messageBox"
+        class="message hidden"
+        role="alert"
+      ></div>
+    </section>
+
+    <p class="footer-note">
+      密码只发送给 Supabase Auth。404 页面不会记录或展示密码。
+    </p>
+  </main>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"
+  ></script>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const elements = {
+        loadingView:
+          document.getElementById("loadingView"),
+
+        loginView:
+          document.getElementById("loginView"),
+
+        consentView:
+          document.getElementById("consentView"),
+
+        loginForm:
+          document.getElementById("loginForm"),
+
+        emailInput:
+          document.getElementById("emailInput"),
+
+        passwordInput:
+          document.getElementById("passwordInput"),
+
+        loginButton:
+          document.getElementById("loginButton"),
+
+        currentUser:
+          document.getElementById("currentUser"),
+
+        clientName:
+          document.getElementById("clientName"),
+
+        redirectUri:
+          document.getElementById("redirectUri"),
+
+        scopeList:
+          document.getElementById("scopeList"),
+
+        approveButton:
+          document.getElementById("approveButton"),
+
+        denyButton:
+          document.getElementById("denyButton"),
+
+        signOutButton:
+          document.getElementById("signOutButton"),
+
+        messageBox:
+          document.getElementById("messageBox")
+      };
+
+
+      const authorizationId =
+        new URLSearchParams(
+          window.location.search
+        ).get("authorization_id");
+
+
+      const scopeLabels = {
+        openid:
+          "确认当前登录身份",
+
+        email:
+          "读取登录账号的邮箱信息",
+
+        profile:
+          "读取账号的基础资料",
+
+        phone:
+          "读取账号绑定的手机号"
+      };
+
+
+      let authClient = null;
+      let authorizationDetails = null;
+
+
+      function showView(viewName) {
+        elements.loadingView.classList.add("hidden");
+        elements.loginView.classList.add("hidden");
+        elements.consentView.classList.add("hidden");
+
+        elements[viewName].classList.remove("hidden");
+      }
+
+
+      function showMessage(
+        text,
+        type = "error"
+      ) {
+        elements.messageBox.textContent = text;
+
+        elements.messageBox.className =
+          `message ${type}`;
+      }
+
+
+      function clearMessage() {
+        elements.messageBox.textContent = "";
+
+        elements.messageBox.className =
+          "message hidden";
+      }
+
+
+      function setDecisionBusy(isBusy) {
+        elements.approveButton.disabled = isBusy;
+        elements.denyButton.disabled = isBusy;
+        elements.signOutButton.disabled = isBusy;
+      }
+
+
+      function renderScopes(scopeText) {
+        elements.scopeList.replaceChildren();
+
+        const scopes = String(scopeText ?? "")
+          .split(/\s+/)
+          .map((scope) => scope.trim())
+          .filter(Boolean);
+
+
+        if (scopes.length === 0) {
+          const item = document.createElement("li");
+
+          item.className = "scope-item";
+          item.textContent =
+            "使用你的登录身份连接 404 小窝";
+
+          elements.scopeList.append(item);
+
+          return;
+        }
+
+
+        for (const scope of scopes) {
+          const item = document.createElement("li");
+
+          item.className = "scope-item";
+
+          item.textContent =
+            scopeLabels[scope] ??
+            `OAuth 权限：${scope}`;
+
+          elements.scopeList.append(item);
+        }
+      }
+
+
+      async function loadAuthorizationDetails() {
+        clearMessage();
+
+        const {
+          data: userData,
+          error: userError
+        } = await authClient.auth.getUser();
+
+
+        if (
+          userError ||
+          !userData?.user
+        ) {
+          showView("loginView");
+
+          return;
+        }
+
+
+        const {
+          data,
+          error
+        } =
+          await authClient.auth.oauth
+            .getAuthorizationDetails(
+              authorizationId
+            );
+
+
+        if (error || !data) {
+          throw new Error(
+            error?.message ??
+            "这份授权申请无效或已经过期。"
+          );
+        }
+
+
+        if (
+          !Object.prototype.hasOwnProperty.call(
+            data,
+            "authorization_id"
+          )
+        ) {
+          if (data.redirect_url) {
+            window.location.assign(
+              data.redirect_url
+            );
+
+            return;
+          }
+
+          throw new Error(
+            "授权申请缺少必要信息。"
+          );
+        }
+
+
+        authorizationDetails = data;
+
+        elements.currentUser.textContent =
+          userData.user.email ??
+          "已登录屋主";
+
+        elements.clientName.textContent =
+          data.client?.name ??
+          "未命名应用";
+
+        elements.redirectUri.textContent =
+          data.redirect_uri ??
+          "未提供";
+
+        renderScopes(data.scope);
+
+        showView("consentView");
+      }
+
+
+      async function handleLogin(event) {
+        event.preventDefault();
+        clearMessage();
+
+        elements.loginButton.disabled = true;
+        elements.loginButton.textContent =
+          "正在登录……";
+
+
+        try {
+          const email =
+            elements.emailInput.value.trim();
+
+          const password =
+            elements.passwordInput.value;
+
+
+          const {
+            error
+          } =
+            await authClient.auth
+              .signInWithPassword({
+                email,
+                password
+              });
+
+
+          if (error) {
+            throw error;
+          }
+
+
+          elements.passwordInput.value = "";
+
+          await loadAuthorizationDetails();
+        } catch (error) {
+          showMessage(
+            error?.message ??
+            "登录失败，请检查邮箱和密码。"
+          );
+        } finally {
+          elements.loginButton.disabled = false;
+          elements.loginButton.textContent =
+            "登录并继续";
+        }
+      }
+
+
+      async function handleDecision(decision) {
+        clearMessage();
+        setDecisionBusy(true);
+
+
+        try {
+          const method =
+            decision === "approve"
+              ? "approveAuthorization"
+              : "denyAuthorization";
+
+
+          const {
+            data,
+            error
+          } =
+            await authClient.auth.oauth[method](
+              authorizationDetails.authorization_id
+            );
+
+
+          if (error || !data?.redirect_url) {
+            throw new Error(
+              error?.message ??
+              "无法完成这次授权决定。"
+            );
+          }
+
+
+          window.location.assign(
+            data.redirect_url
+          );
+        } catch (error) {
+          showMessage(
+            error?.message ??
+            "授权处理失败，请稍后重试。"
+          );
+
+          setDecisionBusy(false);
+        }
+      }
+
+
+      async function initialize() {
+        try {
+          if (!authorizationId) {
+            throw new Error(
+              "地址中缺少 authorization_id，无法识别来访申请。"
+            );
+          }
+
+
+          const configResponse =
+            await fetch(
+              "/api/public-config",
+              {
+                cache: "no-store"
+              }
+            );
+
+
+          if (!configResponse.ok) {
+            throw new Error(
+              "无法读取 404 的公开连接配置。"
+            );
+          }
+
+
+          const config =
+            await configResponse.json();
+
+
+          if (
+            !config.supabaseUrl ||
+            !config.supabasePublishableKey
+          ) {
+            throw new Error(
+              "404 的公开连接配置尚未完成。"
+            );
+          }
+
+
+          const {
+            createClient
+          } = window.supabase;
+
+
+          authClient = createClient(
+            config.supabaseUrl,
+            config.supabasePublishableKey,
+            {
+              auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+              }
+            }
+          );
+
+
+          await loadAuthorizationDetails();
+        } catch (error) {
+          showView("loadingView");
+
+          elements.loadingView.textContent =
+            "暂时无法打开这扇门。";
+
+          showMessage(
+            error?.message ??
+            "授权页面初始化失败。"
+          );
+        }
+      }
+
+
+      elements.loginForm.addEventListener(
+        "submit",
+        handleLogin
+      );
+
+
+      elements.approveButton.addEventListener(
+        "click",
+        () => {
+          void handleDecision("approve");
+        }
+      );
+
+
+      elements.denyButton.addEventListener(
+        "click",
+        () => {
+          void handleDecision("deny");
+        }
+      );
+
+
+      elements.signOutButton.addEventListener(
+        "click",
+        async () => {
+          clearMessage();
+
+          await authClient.auth.signOut();
+
+          authorizationDetails = null;
+
+          showView("loginView");
+        }
+      );
+
+
+      void initialize();
+    })();
+  </script>
+</body>
+</html>

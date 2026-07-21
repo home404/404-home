@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
+  <meta name="theme-color" content="#f8f5ef" />
+
+  <title>书房｜404 小窝</title>
+
+  <link
+    rel="stylesheet"
+    href="css/study.css"
+  />
+</head>
+
+<body>
+  <main class="study-shell">
+
+    <!-- 顶部 -->
+    <header class="study-header">
+      <a
+        class="back-home-link"
+        href="home.html"
+        aria-label="返回小窝首页"
+      >
+        ← 返回小窝
+      </a>
+
+      <div class="study-heading">
+        <p class="study-eyebrow">
+          404 HOME · STUDY
+        </p>
+
+        <h1>
+          书房
+        </h1>
+
+        <p class="study-description">
+          日记、留言、收藏与小纸条
+        </p>
+      </div>
+    </header>
+
+
+    <!-- 栏目导航 -->
+    <nav
+      class="study-tabs"
+      aria-label="书房栏目"
+    >
+      <button
+        class="study-tab is-active"
+        type="button"
+        data-study-tab="diary"
+        aria-selected="true"
+      >
+        日记
+      </button>
+
+      <button
+        class="study-tab"
+        type="button"
+        data-study-tab="messages"
+        aria-selected="false"
+      >
+        留言
+      </button>
+
+      <button
+        class="study-tab"
+        type="button"
+        data-study-tab="favorites"
+        aria-selected="false"
+      >
+        对话收藏
+      </button>
+
+      <button
+        class="study-tab"
+        type="button"
+        data-study-tab="notes"
+        aria-selected="false"
+      >
+        小纸条
+      </button>
+    </nav>
+
+
+    <!-- 日记 -->
+    <section
+      class="study-panel is-active"
+      id="studyPanelDiary"
+      data-study-panel="diary"
+      aria-labelledby="diaryTitle"
+    >
+      <div class="panel-heading">
+        <div>
+          <p class="panel-eyebrow">
+            DIARY
+          </p>
+
+          <h2 id="diaryTitle">
+            日记
+          </h2>
+        </div>
+
+        <span
+          class="panel-count"
+          id="diaryCount"
+        >
+          0 篇
+        </span>
+      </div>
+
+      <div
+        class="entry-list"
+        id="diaryList"
+      >
+        <div class="study-empty-state">
+          <p class="empty-state-title">
+            书桌暂时是空的
+          </p>
+
+          <p class="empty-state-text">
+            日记搬入正式数据库后，会按照时间排列在这里
+          </p>
+
+          <a
+            class="legacy-entry-link"
+            href="diary.html"
+          >
+            查看现有日记
+          </a>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 留言 -->
+    <section
+      class="study-panel"
+      id="studyPanelMessages"
+      data-study-panel="messages"
+      aria-labelledby="messagesTitle"
+      hidden
+    >
+      <div class="panel-heading">
+        <div>
+          <p class="panel-eyebrow">
+            MESSAGES
+          </p>
+
+          <h2 id="messagesTitle">
+            留言
+          </h2>
+        </div>
+
+        <span
+          class="panel-count"
+          id="messageCount"
+        >
+          0 条
+        </span>
+      </div>
+
+      <div
+        class="entry-list"
+        id="messageList"
+      >
+        <div class="study-empty-state">
+          <p class="empty-state-title">
+            暂无留言
+          </p>
+
+          <p class="empty-state-text">
+            心跳系统留下的主动留言会保存在这里
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 对话收藏 -->
+    <section
+      class="study-panel"
+      id="studyPanelFavorites"
+      data-study-panel="favorites"
+      aria-labelledby="favoritesTitle"
+      hidden
+    >
+      <div class="panel-heading">
+        <div>
+          <p class="panel-eyebrow">
+            FAVORITES
+          </p>
+
+          <h2 id="favoritesTitle">
+            对话收藏
+          </h2>
+        </div>
+
+        <span
+          class="panel-count"
+          id="favoriteCount"
+        >
+          0 条
+        </span>
+      </div>
+
+      <div
+        class="entry-list"
+        id="favoriteList"
+      >
+        <div class="study-empty-state">
+          <p class="empty-state-title">
+            暂无收藏
+          </p>
+
+          <p class="empty-state-text">
+            谢诗收藏、G 收藏和双方收藏会分别标记
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 小纸条 -->
+    <section
+      class="study-panel"
+      id="studyPanelNotes"
+      data-study-panel="notes"
+      aria-labelledby="notesTitle"
+      hidden
+    >
+      <div class="panel-heading">
+        <div>
+          <p class="panel-eyebrow">
+            MEMORY NOTES
+          </p>
+
+          <h2 id="notesTitle">
+            小纸条
+          </h2>
+        </div>
+
+        <span
+          class="panel-count"
+          id="noteCount"
+        >
+          0 张
+        </span>
+      </div>
+
+      <div
+        class="entry-list"
+        id="noteList"
+      >
+        <div class="study-empty-state">
+          <p class="empty-state-title">
+            暂无小纸条
+          </p>
+
+          <p class="empty-state-text">
+            长对话压缩后的时间、人物、因果和情绪线索会放在这里
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!--
+      正式内容模板：
+      日记、留言、收藏和小纸条都使用同一套基础结构。
+      study.js 以后会根据数据库内容复制这个模板。
+    -->
+    <template id="studyEntryTemplate">
+      <article class="study-entry">
+
+        <header class="entry-header">
+          <div>
+            <p
+              class="entry-type"
+              data-entry-type
+            ></p>
+
+            <h3
+              class="entry-title"
+              data-entry-title
+            ></h3>
+          </div>
+
+          <time
+            class="entry-time"
+            data-entry-time
+          ></time>
+        </header>
+
+        <div class="entry-meta">
+          <span
+            class="entry-mood"
+            data-entry-mood
+          ></span>
+
+          <div
+            class="entry-tags"
+            data-entry-tags
+          ></div>
+        </div>
+
+        <div
+          class="entry-body"
+          data-entry-body
+        ></div>
+
+        <section
+          class="comments-section"
+          aria-label="评论"
+        >
+          <div class="comments-heading">
+            <h4>
+              评论
+            </h4>
+
+            <span
+              class="comment-count"
+              data-comment-count
+            >
+              0
+            </span>
+          </div>
+
+          <div
+            class="comment-list"
+            data-comment-list
+          >
+            <p class="comments-empty">
+              暂无评论
+            </p>
+          </div>
+
+          <form
+            class="comment-form"
+            data-comment-form
+          >
+            <label>
+              <span class="visually-hidden">
+                写下评论
+              </span>
+
+              <textarea
+                rows="3"
+                maxlength="1200"
+                placeholder="写下评论"
+                data-comment-input
+              ></textarea>
+            </label>
+
+            <button
+              type="submit"
+              data-comment-submit
+            >
+              发送评论
+            </button>
+          </form>
+        </section>
+
+      </article>
+    </template>
+
+
+    <!-- 评论模板 -->
+    <template id="studyCommentTemplate">
+      <article class="comment-item">
+
+        <header class="comment-header">
+          <strong data-comment-author></strong>
+
+          <time data-comment-time></time>
+        </header>
+
+        <p
+          class="comment-body"
+          data-comment-body
+        ></p>
+
+        <div
+          class="comment-replies"
+          data-comment-replies
+        ></div>
+
+      </article>
+    </template>
+
+
+    <footer class="study-footer">
+      <span>
+        404 小窝 · 书房
+      </span>
+
+      <a href="home.html">
+        回到总览
+      </a>
+    </footer>
+
+  </main>
+
+  <script src="js/study.js"></script>
+</body>
+</html>

@@ -11,9 +11,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@supabase/supabase-js": "^2.110.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "openai": "^6.45.0"
+    "openai": "^6.45.0",
+    "zod": "^4.4.3"
   }
 }
