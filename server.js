@@ -211,6 +211,107 @@ app.all(
   )
 );
 
+/* ========================================
+   404 书房正式网页 API
+   CommonJS 主服务通过动态 import 接入 ESM
+======================================== */
+
+let studyApiModulePromise = null;
+
+
+function loadStudyApiModule() {
+  if (!studyApiModulePromise) {
+    studyApiModulePromise =
+      import("./routes/study-api.mjs");
+  }
+
+  return studyApiModulePromise;
+}
+
+
+function createStudyApiHandler(
+  exportName
+) {
+  return async (
+    req,
+    res,
+    next
+  ) => {
+    try {
+      const routeModule =
+        await loadStudyApiModule();
+
+      const handler =
+        routeModule[exportName];
+
+
+      if (
+        typeof handler !== "function"
+      ) {
+        throw new Error(
+          `Study API handler not found: ${exportName}`
+        );
+      }
+
+
+      await handler(
+        req,
+        res
+      );
+    } catch (error) {
+      console.error(
+        "Load Study API route failed:",
+        error
+      );
+
+
+      if (!res.headersSent) {
+        return res.status(500).json({
+          ok: false,
+          error:
+            "study_api_unavailable"
+        });
+      }
+
+
+      return next(error);
+    }
+  };
+}
+
+
+/* 读取书房内容列表 */
+
+app.get(
+  "/api/study/entries",
+
+  createStudyApiHandler(
+    "listStudyEntries"
+  )
+);
+
+
+/* 读取单篇正文和评论 */
+
+app.get(
+  "/api/study/entries/:entryId",
+
+  createStudyApiHandler(
+    "getStudyEntry"
+  )
+);
+
+
+/* 谢诗发表评论或回复 */
+
+app.post(
+  "/api/study/entries/:entryId/comments",
+
+  createStudyApiHandler(
+    "addStudyComment"
+  )
+);
+
 app.use(express.static(__dirname));
 
 function getTodayKey() {

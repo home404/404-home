@@ -16,6 +16,142 @@
     rel="stylesheet"
     href="css/study.css"
   />
+
+  <style>
+    .study-auth-panel {
+      display: grid;
+      gap: 14px;
+      margin: 0 0 22px;
+      padding: 18px;
+      border: 1px solid rgba(78, 65, 53, 0.14);
+      border-radius: 18px;
+      background: rgba(255, 252, 246, 0.82);
+    }
+
+    .study-auth-panel[hidden],
+    .study-auth-panel [hidden] {
+      display: none !important;
+    }
+
+    .study-auth-loading,
+    .study-auth-copy,
+    .study-auth-message,
+    .comment-form-status,
+    .comment-reply-context {
+      margin: 0;
+      color: #756d65;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .study-auth-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .study-auth-fields {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .study-auth-fields input {
+      min-width: 0;
+      min-height: 42px;
+      padding: 0 12px;
+      border: 1px solid rgba(78, 65, 53, 0.16);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.85);
+      color: inherit;
+      font: inherit;
+    }
+
+    .study-auth-button,
+    .comment-reply-button,
+    .comment-cancel-reply {
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .study-auth-button {
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 12px;
+      background: #302a25;
+      color: #fffaf3;
+      font-weight: 700;
+    }
+
+    .study-session-view {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .study-session-email {
+      overflow-wrap: anywhere;
+      font-weight: 700;
+    }
+
+    .study-auth-message.is-error,
+    .comment-form-status.is-error {
+      color: #9b3f36;
+    }
+
+    .study-auth-message.is-success,
+    .comment-form-status.is-success {
+      color: #4f6c4f;
+    }
+
+    .entry-body {
+      white-space: pre-wrap;
+    }
+
+    .comment-item[data-comment-depth]:not([data-comment-depth="0"]) {
+      margin-left: 18px;
+      padding-left: 14px;
+      border-left: 2px solid rgba(78, 65, 53, 0.1);
+    }
+
+    .comment-reply-button,
+    .comment-cancel-reply {
+      margin-top: 8px;
+      padding: 0;
+      background: transparent;
+      color: #756d65;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .comment-reply-context {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(238, 229, 216, 0.62);
+    }
+
+    .comment-form-status {
+      margin-top: 8px;
+    }
+
+    @media (max-width: 680px) {
+      .study-auth-fields {
+        grid-template-columns: 1fr;
+      }
+
+      .study-session-view {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+
 </head>
 
 <body>
@@ -45,6 +181,87 @@
         </p>
       </div>
     </header>
+
+    <!-- 屋主登录状态 -->
+    <section
+      class="study-auth-panel"
+      id="studyAuthPanel"
+      aria-live="polite"
+    >
+      <p
+        class="study-auth-loading"
+        id="studyAuthLoading"
+      >
+        正在确认书房门锁……
+      </p>
+
+      <form
+        class="study-auth-form"
+        id="studyLoginForm"
+        hidden
+      >
+        <div>
+          <strong>屋主登录</strong>
+          <p class="study-auth-copy">
+            登录后可读取数据库日记，并以谢诗的署名发表评论。
+          </p>
+        </div>
+
+        <div class="study-auth-fields">
+          <input
+            id="studyEmailInput"
+            type="email"
+            autocomplete="email"
+            placeholder="邮箱"
+            required
+          />
+
+          <input
+            id="studyPasswordInput"
+            type="password"
+            autocomplete="current-password"
+            placeholder="密码"
+            required
+          />
+
+          <button
+            class="study-auth-button"
+            id="studyLoginButton"
+            type="submit"
+          >
+            登录书房
+          </button>
+        </div>
+      </form>
+
+      <div
+        class="study-session-view"
+        id="studySessionView"
+        hidden
+      >
+        <p class="study-auth-copy">
+          屋主已登录：
+          <span
+            class="study-session-email"
+            id="studySessionEmail"
+          ></span>
+        </p>
+
+        <button
+          class="study-auth-button"
+          id="studySignOutButton"
+          type="button"
+        >
+          退出登录
+        </button>
+      </div>
+
+      <p
+        class="study-auth-message"
+        id="studyAuthMessage"
+        hidden
+      ></p>
+    </section>
 
 
     <!-- 栏目导航 -->
@@ -346,6 +563,21 @@
             class="comment-form"
             data-comment-form
           >
+            <div
+              class="comment-reply-context"
+              data-comment-reply-context
+              hidden
+            >
+              <span data-comment-reply-label></span>
+
+              <button
+                class="comment-cancel-reply"
+                type="button"
+                data-comment-cancel-reply
+              >
+                取消回复
+              </button>
+            </div>
             <label>
               <span class="visually-hidden">
                 写下评论
@@ -353,7 +585,7 @@
 
               <textarea
                 rows="3"
-                maxlength="1200"
+                maxlength="12000"
                 placeholder="写下评论"
                 data-comment-input
               ></textarea>
@@ -365,6 +597,12 @@
             >
               发送评论
             </button>
+
+            <p
+              class="comment-form-status"
+              data-comment-form-status
+              hidden
+            ></p>
           </form>
         </section>
 
@@ -387,6 +625,14 @@
           data-comment-body
         ></p>
 
+        <button
+          class="comment-reply-button"
+          type="button"
+          data-comment-reply
+        >
+          回复
+        </button>
+
         <div
           class="comment-replies"
           data-comment-replies
@@ -407,6 +653,10 @@
     </footer>
 
   </main>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"
+  ></script>
 
   <script src="js/study.js"></script>
 </body>
