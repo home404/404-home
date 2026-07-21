@@ -4,6 +4,7 @@ const express = require("express");
 const OpenAI = require("openai");
 const path = require("path");
 const fs = require("fs");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 const PORT = process.env.PORT || 4040;
@@ -11,6 +12,49 @@ const PORT = process.env.PORT || 4040;
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY;
+
+const supabase =
+  supabaseUrl && supabaseSecretKey
+    ? createClient(supabaseUrl, supabaseSecretKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        }
+      })
+    : null;
+
+    async function getSupabaseStatus() {
+  if (!supabase) {
+    return {
+      configured: false,
+      connected: false
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("home_state")
+    .select("id")
+    .eq("id", "main")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Supabase health check failed:", error.message);
+
+    return {
+      configured: true,
+      connected: false
+    };
+  }
+
+  return {
+    configured: true,
+    connected: data?.id === "main"
+  };
+}
 
 let lightIsOn = false;
 let identityCache = null;
@@ -310,7 +354,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.get("/status", (req, res) => {
+app.get("/status", async (req, res) => {
   const todayKey = getTodayKey();
 
   let voiceAnchorInfo = null;
@@ -330,8 +374,11 @@ app.get("/status", (req, res) => {
     };
   }
 
+  const supabaseStatus = await getSupabaseStatus();
+
   res.json({
     ok: true,
+    supabase: supabaseStatus,
     today: todayKey,
     lightIsOn,
     lightOnDate,
