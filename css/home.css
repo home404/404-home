@@ -545,3 +545,99 @@ a {
     transition: none;
   }
 }
+
+/* ------------------------------
+   全屋账号与主界面退出
+------------------------------ */
+
+.home-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+
+  margin-bottom: 16px;
+}
+
+.home-topline .home-date {
+  margin: 0;
+}
+
+.home-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  min-width: 0;
+}
+
+.home-account[hidden] {
+  display: none !important;
+}
+
+.home-account-email {
+  overflow: hidden;
+  max-width: 190px;
+
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 600;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.home-sign-out-button {
+  flex: 0 0 auto;
+
+  min-height: 30px;
+  padding: 5px 10px;
+
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--text-soft);
+
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.home-sign-out-button:active {
+  transform: scale(0.97);
+}
+
+.home-sign-out-button:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+#recentStatus {
+  display: -webkit-box;
+  overflow: hidden;
+
+  white-space: normal;
+  text-overflow: initial;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@media (max-width: 680px) {
+  .home-topline {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .home-account {
+    justify-content: space-between;
+  }
+
+  .home-account-email {
+    max-width: min(66vw, 250px);
+  }
+}

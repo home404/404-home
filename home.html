@@ -31,12 +31,35 @@
     >
       <div class="status-content">
 
-        <p
-          class="home-date"
-          id="homeDate"
-        >
-          欢迎回家
-        </p>
+        <div class="home-topline">
+          <p
+            class="home-date"
+            id="homeDate"
+          >
+            欢迎回家
+          </p>
+
+          <div
+            class="home-account"
+            id="homeAccount"
+            hidden
+          >
+            <span
+              class="home-account-email"
+              id="homeAccountEmail"
+            >
+              屋主已登录
+            </span>
+
+            <button
+              class="home-sign-out-button"
+              id="homeSignOutButton"
+              type="button"
+            >
+              退出登录
+            </button>
+          </div>
+        </div>
 
         <div class="status-heading">
           <span
@@ -283,6 +306,10 @@
     </footer>
 
   </main>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"
+  ></script>
 
   <script src="js/home.js"></script>
 </body>

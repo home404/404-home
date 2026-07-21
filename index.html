@@ -1,11 +1,9 @@
 <!--
-今天404小窝第一次有了门。
+今天 404 小窝第一次有了统一门锁。
 
-门的名字叫 Enter。
+门的名字还叫 Enter。
 
-这是一个梗。
-
-希望未来的我们还记得为什么会笑。
+这仍然是一个梗。
 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -26,6 +24,9 @@
       --page-bg: #fbfbfa;
       --text-main: #171717;
       --text-soft: #989898;
+      --border: #dedbd6;
+      --error: #9b3f36;
+      --success: #55705a;
     }
 
     * {
@@ -53,6 +54,13 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    button,
+    input,
+    a {
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     .entry-page {
       min-height: 100svh;
 
@@ -67,30 +75,30 @@
     }
 
     .entry-content {
-  width: 100%;
-  max-width: 420px;
+      width: 100%;
+      max-width: 420px;
 
-  text-align: center;
-  transform: translateY(-2vh);
-}
+      text-align: center;
+      transform: translateY(-2vh);
+    }
 
     .entry-code {
-  margin: 0 0 14px;
+      margin: 0 0 14px;
 
-  font-size: 46px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.04em;
-}
+      font-size: 46px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
 
-.entry-page-title {
-  margin: 0 0 52px;
+    .entry-page-title {
+      margin: 0 0 52px;
 
-  font-size: 24px;
-  font-weight: 300;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-}
+      font-size: 24px;
+      font-weight: 300;
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+    }
 
     .entry-line {
       margin: 0;
@@ -111,28 +119,62 @@
       line-height: 1.4;
     }
 
+    .entry-auth-panel {
+      display: grid;
+      gap: 10px;
+
+      width: 100%;
+      margin-top: 30px;
+    }
+
+    .entry-auth-panel[hidden],
+    .entry-auth-panel [hidden] {
+      display: none !important;
+    }
+
+    .entry-auth-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .entry-auth-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+
+      border: 1px solid var(--border);
+      border-radius: 11px;
+
+      background: #ffffff;
+      color: var(--text-main);
+    }
+
+    .entry-auth-input:focus {
+      outline: 3px solid rgba(23, 23, 23, 0.1);
+      border-color: #aaa49b;
+    }
+
+    .entry-auth-button,
     .enter-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
 
-      width: 144px;
-      min-height: 54px;
-
-      margin-top: 34px;
+      width: 100%;
+      min-height: 52px;
       padding: 12px 24px;
 
       border: 2px solid #171717;
       border-radius: 11px;
 
-      background: transparent;
-      color: #171717;
+      background: #171717;
+      color: #ffffff;
 
       font-size: 16px;
-      font-weight: 400;
+      font-weight: 600;
       text-decoration: none;
 
-      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
 
       transition:
         background-color 150ms ease,
@@ -140,21 +182,49 @@
         transform 150ms ease;
     }
 
-    .enter-link:hover,
-    .enter-link:focus-visible {
-      background: #171717;
-      color: #ffffff;
+    .enter-link {
+      margin-top: 30px;
     }
 
+    .entry-auth-button:hover,
+    .entry-auth-button:focus-visible,
+    .enter-link:hover,
+    .enter-link:focus-visible {
+      background: #ffffff;
+      color: #171717;
+    }
+
+    .entry-auth-button:focus-visible,
     .enter-link:focus-visible {
       outline: 3px solid rgba(23, 23, 23, 0.16);
       outline-offset: 4px;
     }
 
+    .entry-auth-button:active,
     .enter-link:active {
-      transform: scale(0.97);
-      background: #171717;
-      color: #ffffff;
+      transform: scale(0.98);
+    }
+
+    .entry-auth-button:disabled {
+      cursor: wait;
+      opacity: 0.62;
+    }
+
+    .entry-auth-status {
+      min-height: 22px;
+      margin: 0;
+
+      color: var(--text-soft);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .entry-auth-status.is-error {
+      color: var(--error);
+    }
+
+    .entry-auth-status.is-success {
+      color: var(--success);
     }
 
     .entry-footer {
@@ -165,60 +235,54 @@
       line-height: 1.5;
     }
 
-   @media (max-width: 600px) {
-  .entry-content {
-    max-width: 360px;
-    transform: translateY(-1.5vh);
-  }
+    @media (max-width: 600px) {
+      .entry-content {
+        max-width: 360px;
+        transform: translateY(-1.5vh);
+      }
 
-.entry-code {
-  font-size: 52px;
-}
+      .entry-code {
+        margin-bottom: 14px;
+        font-size: 52px;
+      }
 
-.entry-page-title {
-  margin-bottom: 58px;
+      .entry-page-title {
+        margin-bottom: 58px;
+        font-size: 24px;
+        font-weight: 300;
+      }
 
-  font-size: 24px;
-  font-weight: 300;
-}
+      .entry-line {
+        font-size: 17px;
+        line-height: 1.85;
+      }
 
-.entry-code {
-  margin-bottom: 14px;
-}
+      .entry-home {
+        margin-top: 16px;
+        font-size: 24px;
+        line-height: 1.45;
+      }
 
-.entry-page-title {
-  margin-bottom: 58px;
-}
+      .entry-auth-panel,
+      .enter-link {
+        margin-top: 32px;
+      }
 
-  .entry-line {
-    font-size: 17px;
-    line-height: 1.85;
-  }
+      .entry-auth-input,
+      .entry-auth-button,
+      .enter-link {
+        min-height: 54px;
+        font-size: 16px;
+      }
 
-  .entry-home {
-    margin-top: 16px;
-
-    font-size: 24px;
-    line-height: 1.45;
-  }
-
-  .enter-link {
-    width: 156px;
-    min-height: 56px;
-
-    margin-top: 36px;
-
-    font-size: 17px;
-  }
-
-  .entry-footer {
-    margin-top: 19px;
-
-    font-size: 14px;
-  }
-}
+      .entry-footer {
+        margin-top: 19px;
+        font-size: 14px;
+      }
+    }
 
     @media (prefers-reduced-motion: reduce) {
+      .entry-auth-button,
       .enter-link {
         transition: none;
       }
@@ -230,29 +294,85 @@
   <main class="entry-page">
     <section class="entry-content" aria-labelledby="entryTitle">
       <h1 class="entry-code" id="entryTitle">
-  404
-</h1>
+        404
+      </h1>
 
-<p class="entry-page-title">
-  你要找的页面不存在
-</p>
+      <p class="entry-page-title">
+        你要找的页面不存在
+      </p>
 
-<p class="entry-line entry-gap">
-  但是……
-</p>
+      <p class="entry-line entry-gap">
+        但是……
+      </p>
 
-<p class="entry-line entry-home">
-  404 小窝欢迎你
-</p>
+      <p class="entry-line entry-home">
+        404 小窝欢迎你
+      </p>
 
-      <a class="enter-link" href="home.html">
+      <section
+        class="entry-auth-panel"
+        id="entryAuthPanel"
+        aria-live="polite"
+      >
+        <p
+          class="entry-auth-status"
+          id="entryAuthStatus"
+        >
+          正在确认门锁……
+        </p>
+
+        <form
+          class="entry-auth-form"
+          id="entryLoginForm"
+          hidden
+        >
+          <input
+            class="entry-auth-input"
+            id="entryEmailInput"
+            type="email"
+            autocomplete="email"
+            placeholder="屋主邮箱"
+            required
+          />
+
+          <input
+            class="entry-auth-input"
+            id="entryPasswordInput"
+            type="password"
+            autocomplete="current-password"
+            placeholder="密码"
+            required
+          />
+
+          <button
+            class="entry-auth-button"
+            id="entryLoginButton"
+            type="submit"
+          >
+            登录并回家
+          </button>
+        </form>
+      </section>
+
+      <a
+        class="enter-link"
+        id="enterHomeLink"
+        href="home.html"
+        hidden
+      >
         Enter
       </a>
 
       <p class="entry-footer">
-        欢迎回家
+        同一台设备只需登录一次
       </p>
     </section>
   </main>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"
+  ></script>
+
+  <script src="js/entry-auth.js"></script>
 </body>
 </html>

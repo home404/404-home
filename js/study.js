@@ -80,13 +80,6 @@ const studyCommentTemplate = document.getElementById(
 const authElements = {
   panel: document.getElementById("studyAuthPanel"),
   loading: document.getElementById("studyAuthLoading"),
-  loginForm: document.getElementById("studyLoginForm"),
-  emailInput: document.getElementById("studyEmailInput"),
-  passwordInput: document.getElementById("studyPasswordInput"),
-  loginButton: document.getElementById("studyLoginButton"),
-  sessionView: document.getElementById("studySessionView"),
-  sessionEmail: document.getElementById("studySessionEmail"),
-  signOutButton: document.getElementById("studySignOutButton"),
   message: document.getElementById("studyAuthMessage")
 };
 
@@ -305,7 +298,7 @@ function renderSignedOutPanels() {
       tabName,
       {
         title: "书房门锁着",
-        text: "请先使用上方的屋主账号登录。",
+        text: "正在带你回正门确认屋主身份。",
         countText: "未登录"
       }
     );
@@ -317,25 +310,26 @@ function renderSignedOutPanels() {
    Supabase 登录
 -------------------------------- */
 
+function redirectToHomeEntrance() {
+  const destination =
+    `study.html${window.location.hash || ""}`;
+
+  window.location.replace(
+    `index.html?next=${encodeURIComponent(destination)}`
+  );
+}
+
 function renderAuthState(session) {
   currentSession = session ?? null;
-
   authElements.loading.hidden = true;
 
   if (!currentSession) {
-    authElements.loginForm.hidden = false;
-    authElements.sessionView.hidden = true;
-    authElements.sessionEmail.textContent = "";
-    renderSignedOutPanels();
+    redirectToHomeEntrance();
     return;
   }
 
-  authElements.loginForm.hidden = true;
-  authElements.sessionView.hidden = false;
-  authElements.sessionEmail.textContent =
-    currentSession.user?.email ?? "已登录屋主";
-
-  setAuthMessage("书房门锁已打开。", "success");
+  authElements.panel.hidden = true;
+  setAuthMessage("");
 
   void loadTabEntries(
     getTabFromHash(),
@@ -412,84 +406,17 @@ async function initializeAuth() {
 
     authReady = true;
     authElements.loading.hidden = true;
-    authElements.loginForm.hidden = false;
+    authElements.panel.hidden = false;
 
     setAuthMessage(
       error?.message ??
-        "书房登录初始化失败。",
+        "全屋门锁初始化失败。",
       "error"
     );
 
     renderSignedOutPanels();
   }
 }
-
-async function handleLogin(event) {
-  event.preventDefault();
-  setAuthMessage("");
-
-  if (!authClient) {
-    setAuthMessage(
-      "登录组件还没有准备好。",
-      "error"
-    );
-    return;
-  }
-
-  authElements.loginButton.disabled = true;
-  authElements.loginButton.textContent = "正在登录……";
-
-  try {
-    const email =
-      authElements.emailInput.value.trim();
-
-    const password =
-      authElements.passwordInput.value;
-
-    const { error } =
-      await authClient.auth.signInWithPassword({
-        email,
-        password
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    authElements.passwordInput.value = "";
-    setAuthMessage("登录成功。", "success");
-  } catch (error) {
-    setAuthMessage(
-      error?.message ??
-        "登录失败，请检查邮箱和密码。",
-      "error"
-    );
-  } finally {
-    authElements.loginButton.disabled = false;
-    authElements.loginButton.textContent = "登录书房";
-  }
-}
-
-async function handleSignOut() {
-  if (!authClient) {
-    return;
-  }
-
-  authElements.signOutButton.disabled = true;
-
-  try {
-    await authClient.auth.signOut();
-    setAuthMessage("已经退出书房。", "success");
-  } catch (error) {
-    setAuthMessage(
-      error?.message ?? "退出失败。",
-      "error"
-    );
-  } finally {
-    authElements.signOutButton.disabled = false;
-  }
-}
-
 
 /* --------------------------------
    正式书房 API
@@ -1010,7 +937,7 @@ async function loadTabEntries(
       safeTabName,
       {
         title: "书房门锁着",
-        text: "请先使用上方的屋主账号登录。",
+        text: "正在带你回正门确认屋主身份。",
         countText: "未登录"
       }
     );
@@ -1086,11 +1013,7 @@ async function loadTabEntries(
       error?.message === "study_auth_required" ||
       error?.status === 401
     ) {
-      renderAuthState(null);
-      setAuthMessage(
-        "登录已失效，请重新登录。",
-        "error"
-      );
+      redirectToHomeEntrance();
       return;
     }
 
@@ -1154,18 +1077,6 @@ function renderEntryList(
 /* --------------------------------
    页面启动
 -------------------------------- */
-
-authElements.loginForm.addEventListener(
-  "submit",
-  handleLogin
-);
-
-authElements.signOutButton.addEventListener(
-  "click",
-  () => {
-    void handleSignOut();
-  }
-);
 
 document.addEventListener(
   "DOMContentLoaded",

@@ -115,8 +115,7 @@
       border-left: 2px solid rgba(78, 65, 53, 0.1);
     }
 
-    .comment-reply-button,
-    .comment-cancel-reply {
+    .comment-reply-button {
       margin-top: 8px;
       padding: 0;
       background: transparent;
@@ -126,14 +125,34 @@
     }
 
     .comment-reply-context {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      background: rgba(238, 229, 216, 0.62);
+      gap: 4px;
+      margin: 0 0 6px;
+      padding: 0;
+      background: transparent;
+      color: #8a8178;
+      font-size: 12px;
+    }
+
+    .comment-cancel-reply {
+      display: inline-grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      padding: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #8a8178;
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .comment-cancel-reply:hover,
+    .comment-cancel-reply:focus-visible {
+      background: rgba(78, 65, 53, 0.08);
+      outline: none;
     }
 
     .comment-form-status {
@@ -182,7 +201,7 @@
       </div>
     </header>
 
-    <!-- 屋主登录状态 -->
+    <!-- 全屋统一门锁状态：成功后自动隐藏 -->
     <section
       class="study-auth-panel"
       id="studyAuthPanel"
@@ -192,69 +211,8 @@
         class="study-auth-loading"
         id="studyAuthLoading"
       >
-        正在确认书房门锁……
+        正在确认全屋门锁……
       </p>
-
-      <form
-        class="study-auth-form"
-        id="studyLoginForm"
-        hidden
-      >
-        <div>
-          <strong>屋主登录</strong>
-          <p class="study-auth-copy">
-            登录后可读取数据库日记，并以谢诗的署名发表评论。
-          </p>
-        </div>
-
-        <div class="study-auth-fields">
-          <input
-            id="studyEmailInput"
-            type="email"
-            autocomplete="email"
-            placeholder="邮箱"
-            required
-          />
-
-          <input
-            id="studyPasswordInput"
-            type="password"
-            autocomplete="current-password"
-            placeholder="密码"
-            required
-          />
-
-          <button
-            class="study-auth-button"
-            id="studyLoginButton"
-            type="submit"
-          >
-            登录书房
-          </button>
-        </div>
-      </form>
-
-      <div
-        class="study-session-view"
-        id="studySessionView"
-        hidden
-      >
-        <p class="study-auth-copy">
-          屋主已登录：
-          <span
-            class="study-session-email"
-            id="studySessionEmail"
-          ></span>
-        </p>
-
-        <button
-          class="study-auth-button"
-          id="studySignOutButton"
-          type="button"
-        >
-          退出登录
-        </button>
-      </div>
 
       <p
         class="study-auth-message"
@@ -264,7 +222,7 @@
     </section>
 
 
-    <!-- 栏目导航 -->
+<!-- 栏目导航 -->
     <nav
       class="study-tabs"
       aria-label="书房栏目"
@@ -574,8 +532,10 @@
                 class="comment-cancel-reply"
                 type="button"
                 data-comment-cancel-reply
+                aria-label="取消回复"
+                title="取消回复"
               >
-                取消回复
+                ×
               </button>
             </div>
             <label>
