@@ -1,2 +1,6 @@
 node_modules/
+.env.heart-v01-backup/
+routes/heart-api.mjs.before-heart-socks
+404-heart-construction.zip
 .env
+.heart-v01-backup/

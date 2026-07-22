@@ -312,6 +312,103 @@ app.post(
   )
 );
 
+
+/* ========================================
+   404 小心脏与活动库 API
+======================================== */
+
+let heartApiModulePromise = null;
+
+
+function loadHeartApiModule() {
+  if (!heartApiModulePromise) {
+    heartApiModulePromise =
+      import("./routes/heart-api.mjs");
+  }
+
+  return heartApiModulePromise;
+}
+
+
+function createHeartApiHandler(
+  exportName
+) {
+  return async (
+    req,
+    res,
+    next
+  ) => {
+    try {
+      const routeModule =
+        await loadHeartApiModule();
+
+      const handler =
+        routeModule[exportName];
+
+      if (
+        typeof handler !== "function"
+      ) {
+        throw new Error(
+          `Heart API handler not found: ${exportName}`
+        );
+      }
+
+      await handler(
+        req,
+        res
+      );
+    } catch (error) {
+      console.error(
+        "Load Heart API route failed:",
+        error
+      );
+
+      if (!res.headersSent) {
+        return res.status(500).json({
+          ok: false,
+          error:
+            "heart_api_unavailable"
+        });
+      }
+
+      return next(error);
+    }
+  };
+}
+
+
+app.get(
+  "/api/heart/status",
+  createHeartApiHandler(
+    "getHeartStatus"
+  )
+);
+
+
+app.get(
+  "/api/heart/brief",
+  createHeartApiHandler(
+    "getHeartBrief"
+  )
+);
+
+
+app.post(
+  "/api/heart/free-activity",
+  createHeartApiHandler(
+    "startFreeActivity"
+  )
+);
+
+
+app.post(
+  "/api/heart/wake",
+  createHeartApiHandler(
+    "wakeHeartOnce"
+  )
+);
+
+
 app.use(express.static(__dirname));
 
 function getTodayKey() {

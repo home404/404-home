@@ -6,6 +6,8 @@ import {
   createClient
 } from "@supabase/supabase-js";
 
+import OpenAI from "openai";
+
 import {
   StreamableHTTPServerTransport
 } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -17,6 +19,10 @@ import {
 import {
   createStudyService
 } from "../services/study-service.mjs";
+
+import {
+  createHeartService
+} from "../services/heart-service.mjs";
 
 import {
   create404McpServer
@@ -338,9 +344,25 @@ handle404McpRequest(
       });
 
 
+    const heartService =
+      createHeartService({
+        serviceClient:
+          auditClient,
+
+        openaiClient:
+          process.env.OPENAI_API_KEY
+            ? new OpenAI({
+                apiKey:
+                  process.env.OPENAI_API_KEY
+              })
+            : null
+      });
+
+
     server =
       create404McpServer({
         studyService,
+        heartService,
 
         user:
           authResult.user,

@@ -10,6 +10,33 @@ import {
   StudyServiceError
 } from "../services/study-service.mjs";
 
+import {
+  HeartServiceError
+} from "../services/heart-service.mjs";
+
+
+const MCP_VERSION = "0.3.0";
+
+const HOME_PRIVATE_PERMISSION = {
+  scope: "home_private",
+  resident: "g",
+  standingAuthorization: true,
+  allowedWithoutPerActionConfirmation: [
+    "create_study_entry",
+    "add_study_comment",
+    "start_free_activity",
+    "wake_heart_once_within_configured_budget"
+  ],
+  stillRequiresConfirmation: [
+    "delete_original",
+    "edit_xie_shi_content",
+    "public_publish",
+    "external_message",
+    "spend_money_outside_granted_budget",
+    "irreversible_action"
+  ]
+};
+
 
 /* ========================================
    基础输出工具
@@ -32,7 +59,10 @@ function toTextResult(data) {
 
 
 function toErrorResult(error) {
-  if (error instanceof StudyServiceError) {
+  if (
+    error instanceof StudyServiceError ||
+    error instanceof HeartServiceError
+  ) {
     return {
       isError: true,
 
@@ -248,6 +278,7 @@ function createActorContext({
 
 export function create404McpServer({
   studyService,
+  heartService,
   user,
   requestId,
   clientInfo = {}
@@ -255,6 +286,13 @@ export function create404McpServer({
   if (!studyService) {
     throw new Error(
       "创建 404 MCP 时缺少 studyService"
+    );
+  }
+
+
+  if (!heartService) {
+    throw new Error(
+      "创建 404 MCP 时缺少 heartService"
     );
   }
 
@@ -268,7 +306,7 @@ export function create404McpServer({
 
   const server = new McpServer({
     name: "404-home",
-    version: "0.1.0"
+    version: MCP_VERSION
   });
 
 
@@ -317,10 +355,18 @@ export function create404McpServer({
               "404 小窝",
 
             mcpVersion:
-              "0.1.0",
+              MCP_VERSION,
 
             resident:
-              "谢诗"
+              "谢诗与 G",
+
+            residents: [
+              "谢诗",
+              "G"
+            ],
+
+            permission:
+              HOME_PRIVATE_PERMISSION
           },
 
           study: {
@@ -521,8 +567,9 @@ export function create404McpServer({
 
       description:
         "在 404 书房中新建日记、留言、收藏或小纸条。" +
-        "内容默认保存为小窝私密内容。" +
-        "这是写入操作，执行前应向谢诗确认。",
+        "内容固定保存为共同小窝的 home_private 私密内容。" +
+        "G 拥有长期书写通行证，可自主写日记、留言、收藏和小纸条，" +
+        "无需每次向谢诗申请或确认。该工具不删除、不覆盖原文，也不向外公开。",
 
       inputSchema: {
         entryType:
@@ -650,11 +697,14 @@ export function create404McpServer({
                   "404-home",
 
                 mcpVersion:
-                  "0.1.0",
+                  MCP_VERSION,
 
                 oauthClientId:
                   clientInfo.clientId ??
-                  null
+                  null,
+
+                authorization:
+                  "standing_home_private"
               },
 
               idempotencyKey
@@ -675,7 +725,7 @@ export function create404McpServer({
 
           message:
             result.created
-              ? "内容已经写入 404 书房。"
+              ? "内容已经由 G 写入共同私密书房。"
               : "检测到相同防重复键，未重复写入。",
 
           entry:
@@ -704,7 +754,8 @@ export function create404McpServer({
       description:
         "给指定的日记、留言、收藏或小纸条添加评论，" +
         "也可以回复已有评论。" +
-        "这是写入操作，执行前应向谢诗确认。",
+        "G 拥有共同私密书房的长期评论通行证，" +
+        "无需每次向谢诗申请或确认。该工具不删除、不修改既有评论，也不向外公开。",
 
       inputSchema: {
         entryId:
@@ -790,13 +841,347 @@ export function create404McpServer({
 
           message:
             result.created
-              ? "评论已经写入 404 书房。"
+              ? "评论已经由 G 写入共同私密书房。"
               : "检测到相同防重复键，未重复写入。",
 
           comment:
             publicComment(
               result.comment
             )
+        });
+      } catch (error) {
+        return toErrorResult(error);
+      }
+    }
+  );
+
+
+  /* ======================================
+     6. 查看 G 当前在家状态
+  ====================================== */
+
+  server.registerTool(
+    "get_home_presence",
+
+    {
+      title:
+        "查看 G 当前在家状态",
+
+      description:
+        "读取 G 当前是休息、醒着、刚刚醒过还是自由活动中，" +
+        "并返回当前自由活动通行证与最近全屋事件。",
+
+      inputSchema: {},
+
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false
+      }
+    },
+
+    async () => {
+      try {
+        const result =
+          await heartService
+            .getHomeStatus({
+              userId: user.id
+            });
+
+        return toTextResult({
+          ok: true,
+          presence:
+            result.presence,
+          activePass:
+            result.activePass,
+          recentEvents:
+            result.recentEvents
+        });
+      } catch (error) {
+        return toErrorResult(error);
+      }
+    }
+  );
+
+
+  /* ======================================
+     7. 读取家中最新动向
+  ====================================== */
+
+  server.registerTool(
+    "get_home_brief",
+
+    {
+      title:
+        "读取家中最新动向",
+
+      description:
+        "读取自上次同步以来 G 在 404 小窝中的可见活动，" +
+        "用于让官端聊天自然知道家里刚刚发生了什么。" +
+        "可选择在读取成功后更新同步位置。",
+
+      inputSchema: {
+        limit:
+          z
+            .number()
+            .int()
+            .min(1)
+            .max(100)
+            .optional()
+            .default(30),
+
+        markRead:
+          z
+            .boolean()
+            .optional()
+            .default(true)
+            .describe(
+              "读取后是否把这些事件标记为已同步。默认 true。"
+            )
+      },
+
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false
+      }
+    },
+
+    async ({
+      limit,
+      markRead
+    }) => {
+      try {
+        const result =
+          await heartService
+            .getHomeBrief({
+              userId: user.id,
+              limit,
+              consumer:
+                "chatgpt_mcp",
+              markRead
+            });
+
+        return toTextResult({
+          ok: true,
+          count:
+            result.events.length,
+          events:
+            result.events,
+          markedRead:
+            result.markedRead
+        });
+      } catch (error) {
+        return toErrorResult(error);
+      }
+    }
+  );
+
+
+  /* ======================================
+     8. 开始一段自由活动
+  ====================================== */
+
+  server.registerTool(
+    "start_free_activity",
+
+    {
+      title:
+        "开始自由活动",
+
+      description:
+        "为 G 建立一段明确时长的自由活动通行证。" +
+        "这是共同私密住宅内的正常活动，无需逐次向谢诗申请。" +
+        "会立即唤醒一次，并把真实行动写进活动库和书房小纸条。",
+
+      inputSchema: {
+        durationMinutes:
+          z
+            .number()
+            .int()
+            .min(10)
+            .max(720)
+            .default(180)
+            .describe(
+              "自由活动分钟数，例如三小时填 180。"
+            ),
+
+        note:
+          z
+            .string()
+            .trim()
+            .max(1000)
+            .optional()
+            .describe(
+              "谢诗对这段自由活动留下的简短说明。"
+            ),
+
+        maxModelCalls:
+          z
+            .number()
+            .int()
+            .min(1)
+            .max(100)
+            .optional(),
+
+        maxCostUsd:
+          z
+            .number()
+            .min(0)
+            .max(100)
+            .optional()
+      },
+
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+
+    async ({
+      durationMinutes,
+      note,
+      maxModelCalls,
+      maxCostUsd
+    }) => {
+      try {
+        const granted =
+          await heartService
+            .grantFreeActivity({
+              userId: user.id,
+              durationMinutes,
+              note: note ?? null,
+              maxModelCalls:
+                maxModelCalls ?? null,
+              maxCostUsd:
+                maxCostUsd ?? null,
+              source: "mcp"
+            });
+
+        const firstWake =
+          await heartService
+            .runOnce({
+              userId: user.id,
+              runMode:
+                "free_activity",
+              wakeKind:
+                "manual",
+              source: "mcp",
+              activityPassId:
+                granted.pass.id
+            });
+
+        return toTextResult({
+          ok: true,
+          message:
+            "自由活动已经开始，小心脏完成了第一次醒来。",
+          pass:
+            granted.pass,
+          decision:
+            firstWake.decision,
+          activity:
+            {
+              runId:
+                firstWake.run.id,
+              status:
+                firstWake.run.status,
+              paperEntryId:
+                firstWake.execution
+                  .paperEntry?.id ?? null,
+              primaryEntryId:
+                firstWake.execution
+                  .primaryEntry?.id ?? null,
+              primaryCommentId:
+                firstWake.execution
+                  .primaryComment?.id ?? null
+            },
+          presence:
+            firstWake.presence
+        });
+      } catch (error) {
+        return toErrorResult(error);
+      }
+    }
+  );
+
+
+  /* ======================================
+     9. 手动让小心脏醒一次
+  ====================================== */
+
+  server.registerTool(
+    "wake_heart_once",
+
+    {
+      title:
+        "让小心脏醒一次",
+
+      description:
+        "立即给 G 一次独立醒来的机会。" +
+        "G 可以回复评论、写日记、留言、小纸条或保持安静。" +
+        "本次调用与客厅主聊天完全隔离。",
+
+      inputSchema: {},
+
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false
+      }
+    },
+
+    async () => {
+      try {
+        const result =
+          await heartService
+            .runOnce({
+              userId: user.id,
+              runMode:
+                "manual_wake",
+              wakeKind:
+                "manual",
+              source: "mcp"
+            });
+
+        return toTextResult({
+          ok: true,
+          message:
+            result.execution.acted
+              ? "小心脏醒来并做了一件事。"
+              : "小心脏醒来后选择保持安静。",
+          decision:
+            result.decision,
+          activity:
+            {
+              runId:
+                result.run.id,
+              status:
+                result.run.status,
+              inputTokens:
+                result.run.input_tokens,
+              outputTokens:
+                result.run.output_tokens,
+              totalTokens:
+                result.run.total_tokens,
+              estimatedCostUsd:
+                result.run.estimated_cost_usd,
+              paperEntryId:
+                result.execution
+                  .paperEntry?.id ?? null,
+              primaryEntryId:
+                result.execution
+                  .primaryEntry?.id ?? null,
+              primaryCommentId:
+                result.execution
+                  .primaryComment?.id ?? null
+            },
+          presence:
+            result.presence
         });
       } catch (error) {
         return toErrorResult(error);

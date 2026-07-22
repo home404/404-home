@@ -15,7 +15,9 @@
     "@supabase/supabase-js": "^2.110.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "node-fetch": "^3.3.2",
     "openai": "^6.45.0",
+    "socks-proxy-agent": "^10.1.0",
     "zod": "^4.4.3"
   }
 }
