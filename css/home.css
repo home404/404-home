@@ -641,3 +641,14 @@ a {
     max-width: min(66vw, 250px);
   }
 }
+
+
+.home-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.home-footer-links a {
+  padding: 6px 0;
+}

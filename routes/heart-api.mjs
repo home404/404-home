@@ -330,6 +330,123 @@ export async function getHeartStatus(
 }
 
 
+
+
+export async function getHeartPreferences(
+  req,
+  res
+) {
+  try {
+    const context =
+      await createHeartRequestContext(
+        req,
+        res
+      );
+
+    if (!context) {
+      return;
+    }
+
+    const result =
+      await context.heartService
+        .getHeartPreferences({
+          userId:
+            context.user.id
+        });
+
+    res.set(
+      "Cache-Control",
+      "no-store"
+    );
+
+    return res.json({
+      ok: true,
+      ...result
+    });
+  } catch (error) {
+    return sendError(
+      res,
+      error
+    );
+  }
+}
+
+
+export async function patchHeartPreferences(
+  req,
+  res
+) {
+  try {
+    const context =
+      await createHeartRequestContext(
+        req,
+        res
+      );
+
+    if (!context) {
+      return;
+    }
+
+    const allowedFields = [
+      "autoHeartbeatEnabled",
+      "timezone",
+      "quietHoursEnabled",
+      "quietStart",
+      "quietEnd",
+      "intervalMinMinutes",
+      "intervalMaxMinutes",
+      "postChatGraceMinutes"
+    ];
+
+    const patch = {};
+
+    for (const field of allowedFields) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          req.body ?? {},
+          field
+        )
+      ) {
+        patch[field] = req.body[field];
+      }
+    }
+
+    if (!Object.keys(patch).length) {
+      throw new HeartServiceError(
+        "empty_heart_preferences_patch",
+        "没有收到可保存的作息设置",
+        400
+      );
+    }
+
+    const result =
+      await context.heartService
+        .updateHeartPreferences({
+          userId:
+            context.user.id,
+          patch,
+          source:
+            "web"
+        });
+
+    res.set(
+      "Cache-Control",
+      "no-store"
+    );
+
+    return res.json({
+      ok: true,
+      ...result
+    });
+  } catch (error) {
+    return sendError(
+      res,
+      error
+    );
+  }
+}
+
+
 export async function getHeartBrief(
   req,
   res

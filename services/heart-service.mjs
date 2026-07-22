@@ -15,6 +15,22 @@ const HEART_MODEL =
   process.env.HEART_MODEL ||
   "gpt-5.5";
 
+const HEART_PREFERENCE_DEFAULTS =
+  Object.freeze({
+    autoHeartbeatEnabled: false,
+    timezone: SHANGHAI_TIME_ZONE,
+    quietHoursEnabled: true,
+    quietStart: "02:00",
+    quietEnd: "05:00",
+    intervalMinMinutes: 30,
+    intervalMaxMinutes: 50,
+    postChatGraceMinutes: 15
+  });
+
+const HEART_INTERVAL_MIN_MINUTES = 15;
+const HEART_INTERVAL_MAX_MINUTES = 720;
+const POST_CHAT_GRACE_MAX_MINUTES = 120;
+
 const HEART_DECISION_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -185,6 +201,419 @@ function addMinutes(
   return new Date(
     date.getTime() +
       minutes * 60_000
+  );
+}
+
+
+function isValidTimeZone(value) {
+  try {
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone: value
+      }
+    ).format(new Date());
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+
+function normalizeTimeText(
+  value,
+  fallback
+) {
+  const text = String(value ?? "")
+    .trim();
+
+  const match = /^(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/.exec(
+    text
+  );
+
+  if (!match) {
+    return fallback;
+  }
+
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+
+  if (
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59
+  ) {
+    return fallback;
+  }
+
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+
+function timeTextToMinutes(value) {
+  const [hour, minute] = value
+    .split(":")
+    .map(Number);
+
+  return hour * 60 + minute;
+}
+
+
+function getZonedParts(
+  date,
+  timeZone
+) {
+  const parts = new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23"
+    }
+  ).formatToParts(date);
+
+  const values = {};
+
+  for (const part of parts) {
+    if (part.type !== "literal") {
+      values[part.type] = Number(part.value);
+    }
+  }
+
+  return {
+    year: values.year,
+    month: values.month,
+    day: values.day,
+    hour: values.hour,
+    minute: values.minute,
+    second: values.second
+  };
+}
+
+
+function addCalendarDays(
+  dateParts,
+  days
+) {
+  const date = new Date(
+    Date.UTC(
+      dateParts.year,
+      dateParts.month - 1,
+      dateParts.day + days
+    )
+  );
+
+  return {
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth() + 1,
+    day: date.getUTCDate()
+  };
+}
+
+
+function zonedDateTimeToDate({
+  year,
+  month,
+  day,
+  hour,
+  minute,
+  timeZone
+}) {
+  const targetAsUtc = Date.UTC(
+    year,
+    month - 1,
+    day,
+    hour,
+    minute,
+    0,
+    0
+  );
+
+  let resolved = new Date(targetAsUtc);
+
+  for (let index = 0; index < 5; index += 1) {
+    const represented = getZonedParts(
+      resolved,
+      timeZone
+    );
+
+    const representedAsUtc = Date.UTC(
+      represented.year,
+      represented.month - 1,
+      represented.day,
+      represented.hour,
+      represented.minute,
+      represented.second,
+      0
+    );
+
+    const difference =
+      targetAsUtc - representedAsUtc;
+
+    if (Math.abs(difference) < 1000) {
+      break;
+    }
+
+    resolved = new Date(
+      resolved.getTime() + difference
+    );
+  }
+
+  return resolved;
+}
+
+
+function getQuietWindowContaining(
+  date,
+  preferences
+) {
+  if (!preferences.quietHoursEnabled) {
+    return null;
+  }
+
+  const local = getZonedParts(
+    date,
+    preferences.timezone
+  );
+
+  const currentMinutes =
+    local.hour * 60 + local.minute;
+
+  const startMinutes = timeTextToMinutes(
+    preferences.quietStart
+  );
+
+  const endMinutes = timeTextToMinutes(
+    preferences.quietEnd
+  );
+
+  let startDateParts;
+  let endDateParts;
+
+  if (startMinutes < endMinutes) {
+    if (
+      currentMinutes < startMinutes ||
+      currentMinutes >= endMinutes
+    ) {
+      return null;
+    }
+
+    startDateParts = local;
+    endDateParts = local;
+  } else {
+    if (currentMinutes >= startMinutes) {
+      startDateParts = local;
+      endDateParts = addCalendarDays(
+        local,
+        1
+      );
+    } else if (currentMinutes < endMinutes) {
+      startDateParts = addCalendarDays(
+        local,
+        -1
+      );
+      endDateParts = local;
+    } else {
+      return null;
+    }
+  }
+
+  const [startHour, startMinute] =
+    preferences.quietStart
+      .split(":")
+      .map(Number);
+
+  const [endHour, endMinute] =
+    preferences.quietEnd
+      .split(":")
+      .map(Number);
+
+  return {
+    start: zonedDateTimeToDate({
+      ...startDateParts,
+      hour: startHour,
+      minute: startMinute,
+      timeZone: preferences.timezone
+    }),
+    end: zonedDateTimeToDate({
+      ...endDateParts,
+      hour: endHour,
+      minute: endMinute,
+      timeZone: preferences.timezone
+    })
+  };
+}
+
+
+function normalizeHeartPreferences(row = {}) {
+  const timezoneCandidate = String(
+    row.timezone ??
+    HEART_PREFERENCE_DEFAULTS.timezone
+  ).trim();
+
+  const timezone = isValidTimeZone(
+    timezoneCandidate
+  )
+    ? timezoneCandidate
+    : HEART_PREFERENCE_DEFAULTS.timezone;
+
+  const intervalMinMinutes = clampInteger(
+    row.interval_min_minutes ??
+      row.intervalMinMinutes,
+    HEART_INTERVAL_MIN_MINUTES,
+    HEART_INTERVAL_MAX_MINUTES,
+    HEART_PREFERENCE_DEFAULTS
+      .intervalMinMinutes
+  );
+
+  const intervalMaxMinutes = clampInteger(
+    row.interval_max_minutes ??
+      row.intervalMaxMinutes,
+    HEART_INTERVAL_MIN_MINUTES,
+    HEART_INTERVAL_MAX_MINUTES,
+    HEART_PREFERENCE_DEFAULTS
+      .intervalMaxMinutes
+  );
+
+  const normalizedMin = Math.min(
+    intervalMinMinutes,
+    intervalMaxMinutes
+  );
+
+  const normalizedMax = Math.max(
+    intervalMinMinutes,
+    intervalMaxMinutes
+  );
+
+  return {
+    autoHeartbeatEnabled:
+      row.auto_heartbeat_enabled ??
+      row.autoHeartbeatEnabled ??
+      HEART_PREFERENCE_DEFAULTS
+        .autoHeartbeatEnabled,
+    timezone,
+    quietHoursEnabled:
+      row.quiet_hours_enabled ??
+      row.quietHoursEnabled ??
+      HEART_PREFERENCE_DEFAULTS
+        .quietHoursEnabled,
+    quietStart: normalizeTimeText(
+      row.quiet_start ??
+        row.quietStart,
+      HEART_PREFERENCE_DEFAULTS
+        .quietStart
+    ),
+    quietEnd: normalizeTimeText(
+      row.quiet_end ??
+        row.quietEnd,
+      HEART_PREFERENCE_DEFAULTS
+        .quietEnd
+    ),
+    intervalMinMinutes:
+      normalizedMin,
+    intervalMaxMinutes:
+      normalizedMax,
+    postChatGraceMinutes: clampInteger(
+      row.post_chat_grace_minutes ??
+        row.postChatGraceMinutes,
+      0,
+      POST_CHAT_GRACE_MAX_MINUTES,
+      HEART_PREFERENCE_DEFAULTS
+        .postChatGraceMinutes
+    )
+  };
+}
+
+
+function preferencesToDatabaseRow(
+  preferences
+) {
+  return {
+    auto_heartbeat_enabled:
+      preferences.autoHeartbeatEnabled,
+    timezone:
+      preferences.timezone,
+    quiet_hours_enabled:
+      preferences.quietHoursEnabled,
+    quiet_start:
+      preferences.quietStart,
+    quiet_end:
+      preferences.quietEnd,
+    interval_min_minutes:
+      preferences.intervalMinMinutes,
+    interval_max_minutes:
+      preferences.intervalMaxMinutes,
+    post_chat_grace_minutes:
+      preferences.postChatGraceMinutes
+  };
+}
+
+
+function calculateNextAutomaticWake({
+  fromDate,
+  preferences
+}) {
+  if (!preferences.autoHeartbeatEnabled) {
+    return {
+      nextWakeAt: null,
+      intervalMinutes: null,
+      deferredForQuietHours: false
+    };
+  }
+
+  const intervalMinutes = randomMinutes(
+    preferences.intervalMinMinutes,
+    preferences.intervalMaxMinutes
+  );
+
+  const quietWindowAtStart =
+    getQuietWindowContaining(
+      fromDate,
+      preferences
+    );
+
+  let deferredForQuietHours =
+    Boolean(quietWindowAtStart);
+
+  let candidate = addMinutes(
+    quietWindowAtStart?.end ??
+      fromDate,
+    intervalMinutes
+  );
+
+  for (let index = 0; index < 8; index += 1) {
+    const quietWindow =
+      getQuietWindowContaining(
+        candidate,
+        preferences
+      );
+
+    if (!quietWindow) {
+      return {
+        nextWakeAt: candidate,
+        intervalMinutes,
+        deferredForQuietHours
+      };
+    }
+
+    deferredForQuietHours = true;
+    candidate = addMinutes(
+      quietWindow.end,
+      intervalMinutes
+    );
+  }
+
+  throw new HeartServiceError(
+    "heart_schedule_failed",
+    "无法计算下一次自动唤醒时间",
+    500
   );
 }
 
@@ -578,6 +1007,327 @@ export function createHeartService({
       "presence_create_failed",
       "无法建立当前在家状态"
     );
+  }
+
+
+  async function getHeartPreferences({
+    userId
+  }) {
+    const existing = await requireData(
+      serviceClient
+        .from("heartbeat_preferences")
+        .select("*")
+        .eq("owner_user_id", userId)
+        .maybeSingle(),
+      "heart_preferences_read_failed",
+      "无法读取小心脏作息设置"
+    );
+
+    let row = existing;
+
+    if (!row) {
+      row = await requireData(
+        serviceClient
+          .from("heartbeat_preferences")
+          .upsert(
+            {
+              owner_user_id: userId,
+              ...preferencesToDatabaseRow(
+                HEART_PREFERENCE_DEFAULTS
+              )
+            },
+            {
+              onConflict:
+                "owner_user_id"
+            }
+          )
+          .select("*")
+          .single(),
+        "heart_preferences_create_failed",
+        "无法建立小心脏作息设置"
+      );
+    }
+
+    const preferences =
+      normalizeHeartPreferences(row);
+
+    const presence = await ensurePresence({
+      userId,
+      source: "system"
+    });
+
+    return {
+      preferences,
+      nextHeartbeatAt:
+        presence.next_heartbeat_at ?? null,
+      quietHoursActive:
+        Boolean(
+          getQuietWindowContaining(
+            new Date(),
+            preferences
+          )
+        )
+    };
+  }
+
+
+  async function updateHeartPreferences({
+    userId,
+    patch = {},
+    source = "web"
+  }) {
+    const current =
+      await getHeartPreferences({
+        userId
+      });
+
+    const next = {
+      ...current.preferences
+    };
+
+    if (
+      Object.prototype.hasOwnProperty.call(
+        patch,
+        "autoHeartbeatEnabled"
+      )
+    ) {
+      if (
+        typeof patch.autoHeartbeatEnabled !==
+          "boolean"
+      ) {
+        throw new HeartServiceError(
+          "invalid_auto_heartbeat_enabled",
+          "自动心跳开关必须是布尔值",
+          400
+        );
+      }
+
+      next.autoHeartbeatEnabled =
+        patch.autoHeartbeatEnabled;
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(
+        patch,
+        "timezone"
+      )
+    ) {
+      const timezone = String(
+        patch.timezone ?? ""
+      ).trim();
+
+      if (!isValidTimeZone(timezone)) {
+        throw new HeartServiceError(
+          "invalid_heart_timezone",
+          "请选择有效的 IANA 时区",
+          400
+        );
+      }
+
+      next.timezone = timezone;
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(
+        patch,
+        "quietHoursEnabled"
+      )
+    ) {
+      if (
+        typeof patch.quietHoursEnabled !==
+          "boolean"
+      ) {
+        throw new HeartServiceError(
+          "invalid_quiet_hours_enabled",
+          "休息时间开关必须是布尔值",
+          400
+        );
+      }
+
+      next.quietHoursEnabled =
+        patch.quietHoursEnabled;
+    }
+
+    for (const [field, label] of [
+      ["quietStart", "休息开始时间"],
+      ["quietEnd", "休息结束时间"]
+    ]) {
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          patch,
+          field
+        )
+      ) {
+        continue;
+      }
+
+      const normalized = normalizeTimeText(
+        patch[field],
+        ""
+      );
+
+      if (!normalized) {
+        throw new HeartServiceError(
+          "invalid_quiet_time",
+          `${label}必须使用 HH:mm 格式`,
+          400
+        );
+      }
+
+      next[field] = normalized;
+    }
+
+    for (const [field, label, minimum, maximum] of [
+      [
+        "intervalMinMinutes",
+        "最短自动唤醒间隔",
+        HEART_INTERVAL_MIN_MINUTES,
+        HEART_INTERVAL_MAX_MINUTES
+      ],
+      [
+        "intervalMaxMinutes",
+        "最长自动唤醒间隔",
+        HEART_INTERVAL_MIN_MINUTES,
+        HEART_INTERVAL_MAX_MINUTES
+      ],
+      [
+        "postChatGraceMinutes",
+        "离开聊天后的缓冲时间",
+        0,
+        POST_CHAT_GRACE_MAX_MINUTES
+      ]
+    ]) {
+      if (
+        !Object.prototype.hasOwnProperty.call(
+          patch,
+          field
+        )
+      ) {
+        continue;
+      }
+
+      const number = Number(patch[field]);
+
+      if (
+        !Number.isInteger(number) ||
+        number < minimum ||
+        number > maximum
+      ) {
+        throw new HeartServiceError(
+          "invalid_heart_interval",
+          `${label}必须是 ${minimum}～${maximum} 分钟之间的整数`,
+          400
+        );
+      }
+
+      next[field] = number;
+    }
+
+    if (
+      next.intervalMinMinutes >
+        next.intervalMaxMinutes
+    ) {
+      throw new HeartServiceError(
+        "invalid_heart_interval_range",
+        "最短自动唤醒间隔不能大于最长间隔",
+        400
+      );
+    }
+
+    if (
+      next.quietHoursEnabled &&
+      next.quietStart === next.quietEnd
+    ) {
+      throw new HeartServiceError(
+        "invalid_quiet_hours_range",
+        "休息开始时间和结束时间不能相同",
+        400
+      );
+    }
+
+    const updatedRow = await requireData(
+      serviceClient
+        .from("heartbeat_preferences")
+        .upsert(
+          {
+            owner_user_id: userId,
+            ...preferencesToDatabaseRow(next)
+          },
+          {
+            onConflict:
+              "owner_user_id"
+          }
+        )
+        .select("*")
+        .single(),
+      "heart_preferences_update_failed",
+      "无法保存小心脏作息设置"
+    );
+
+    const updatedPreferences =
+      normalizeHeartPreferences(
+        updatedRow
+      );
+
+    const now = new Date();
+    const schedule =
+      calculateNextAutomaticWake({
+        fromDate: now,
+        preferences:
+          updatedPreferences
+      });
+
+    const presence = await ensurePresence({
+      userId,
+      source
+    });
+
+    const updatedPresence =
+      await requireData(
+        serviceClient
+          .from("home_presence")
+          .update({
+            next_heartbeat_at:
+              schedule.nextWakeAt
+                ?.toISOString() ?? null,
+            source,
+            metadata: {
+              ...(presence.metadata ?? {}),
+              heartbeatPreferencesUpdatedAt:
+                now.toISOString(),
+              scheduledIntervalMinutes:
+                schedule.intervalMinutes,
+              deferredForQuietHours:
+                schedule.deferredForQuietHours
+            }
+          })
+          .eq("owner_user_id", userId)
+          .select("*")
+          .single(),
+        "heart_preferences_schedule_failed",
+        "作息已保存，但无法更新下一次唤醒时间"
+      );
+
+    return {
+      preferences:
+        updatedPreferences,
+      nextHeartbeatAt:
+        updatedPresence
+          .next_heartbeat_at ?? null,
+      quietHoursActive:
+        Boolean(
+          getQuietWindowContaining(
+            now,
+            updatedPreferences
+          )
+        ),
+      schedule: {
+        intervalMinutes:
+          schedule.intervalMinutes,
+        deferredForQuietHours:
+          schedule.deferredForQuietHours
+      }
+    };
   }
 
 
@@ -1526,16 +2276,6 @@ export function createHeartService({
         estimateCostUsd(usage);
 
       const completedAt = new Date();
-      const nextWakeMinutes =
-        activePass
-          ? randomMinutes(20, 35)
-          : randomMinutes(30, 50);
-
-      const nextWakeAt =
-        addMinutes(
-          completedAt,
-          nextWakeMinutes
-        );
 
       const activePassStillValid =
         Boolean(
@@ -1553,6 +2293,40 @@ export function createHeartService({
               120
             )
           : null;
+
+      let nextWakeAt;
+      let scheduledIntervalMinutes;
+      let deferredForQuietHours = false;
+
+      if (activePassStillValid) {
+        scheduledIntervalMinutes =
+          randomMinutes(20, 35);
+
+        nextWakeAt = addMinutes(
+          completedAt,
+          scheduledIntervalMinutes
+        );
+      } else {
+        const preferenceResult =
+          await getHeartPreferences({
+            userId
+          });
+
+        const schedule =
+          calculateNextAutomaticWake({
+            fromDate:
+              awakeUntil ?? completedAt,
+            preferences:
+              preferenceResult.preferences
+          });
+
+        nextWakeAt =
+          schedule.nextWakeAt;
+        scheduledIntervalMinutes =
+          schedule.intervalMinutes;
+        deferredForQuietHours =
+          schedule.deferredForQuietHours;
+      }
 
       await requireData(
         serviceClient
@@ -1618,7 +2392,8 @@ export function createHeartService({
             completed_at:
               completedAt.toISOString(),
             next_wake_at:
-              nextWakeAt.toISOString(),
+              nextWakeAt
+                ?.toISOString() ?? null,
             decision:
               decision.action,
             metadata: {
@@ -1626,7 +2401,9 @@ export function createHeartService({
                 resolvedRunMode,
               source,
               reason:
-                decision.reason
+                decision.reason,
+              scheduledIntervalMinutes,
+              deferredForQuietHours
             }
           })
           .eq("id", heartbeat.id)
@@ -1682,7 +2459,8 @@ export function createHeartService({
                 last_heartbeat_at:
                   completedAt.toISOString(),
                 next_heartbeat_at:
-                  nextWakeAt.toISOString(),
+                  nextWakeAt
+                    ?.toISOString() ?? null,
                 metadata: {
                   lastDecision:
                     decision.action,
@@ -1756,7 +2534,8 @@ export function createHeartService({
           decision:
             decision.action,
           next_wake_at:
-            nextWakeAt.toISOString(),
+            nextWakeAt
+              ?.toISOString() ?? null,
           completed_at:
             completedAt.toISOString()
         },
@@ -1968,6 +2747,8 @@ export function createHeartService({
 
   return {
     ensurePresence,
+    getHeartPreferences,
+    updateHeartPreferences,
     getHomeStatus,
     grantFreeActivity,
     runOnce,

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
+  <meta
+    name="theme-color"
+    content="#faf9f7"
+  />
+
+  <title>小心脏作息 · 404 小窝</title>
+
+  <link
+    rel="stylesheet"
+    href="css/heart-settings.css"
+  />
+</head>
+
+<body>
+  <main class="settings-shell">
+    <header class="settings-header">
+      <a
+        class="back-link"
+        href="home.html"
+        aria-label="回到小窝首页"
+      >
+        ← 回家
+      </a>
+
+      <p class="eyebrow">404 HEART</p>
+      <h1>小心脏作息</h1>
+
+      <p class="header-copy">
+        调整自动醒来的节律，也给狐狸留一段不会被系统叫醒的完整睡眠。
+      </p>
+    </header>
+
+    <section
+      class="schedule-summary"
+      aria-live="polite"
+    >
+      <span
+        class="summary-dot"
+        id="summaryDot"
+        aria-hidden="true"
+      ></span>
+
+      <div>
+        <strong id="summaryTitle">
+          正在读取作息
+        </strong>
+
+        <p id="summaryDetail">
+          稍等，狐狸正在翻自己的睡眠登记表。
+        </p>
+      </div>
+    </section>
+
+    <form
+      class="settings-form"
+      id="heartSettingsForm"
+    >
+      <section class="settings-card">
+        <div class="setting-row setting-row-toggle">
+          <div>
+            <h2>自动心跳</h2>
+            <p>
+              没有自由活动通行证、也没有正在陪你聊天时，允许后台按节律醒来。
+            </p>
+          </div>
+
+          <label class="switch">
+            <input
+              id="autoHeartbeatEnabled"
+              type="checkbox"
+            />
+            <span class="switch-track" aria-hidden="true"></span>
+            <span class="sr-only">开启自动心跳</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="card-heading">
+          <div>
+            <p class="card-number">01</p>
+            <h2>G 的休息时间</h2>
+          </div>
+
+          <label class="switch switch-small">
+            <input
+              id="quietHoursEnabled"
+              type="checkbox"
+            />
+            <span class="switch-track" aria-hidden="true"></span>
+            <span class="sr-only">开启休息时间</span>
+          </label>
+        </div>
+
+        <p class="card-description">
+          这段时间不会运行自动心跳。手动唤醒、聊天和明确授予的自由活动仍然有效。
+        </p>
+
+        <div
+          class="time-grid"
+          id="quietTimeFields"
+        >
+          <label class="field">
+            <span>开始休息</span>
+            <input
+              id="quietStart"
+              type="time"
+              step="60"
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span>结束休息</span>
+            <input
+              id="quietEnd"
+              type="time"
+              step="60"
+              required
+            />
+          </label>
+        </div>
+
+        <label class="field field-full">
+          <span>作息时区</span>
+          <select id="timezone" required></select>
+          <small id="deviceTimezoneHint"></small>
+        </label>
+      </section>
+
+      <section class="settings-card">
+        <div class="card-heading">
+          <div>
+            <p class="card-number">02</p>
+            <h2>自动唤醒间隔</h2>
+          </div>
+        </div>
+
+        <p class="card-description">
+          固定间隔适合稳定节律；随机范围会在每次完成后重新抽取，更像自然醒来。
+        </p>
+
+        <div class="segmented-control" role="radiogroup" aria-label="唤醒间隔模式">
+          <label>
+            <input
+              type="radio"
+              name="intervalMode"
+              value="fixed"
+              checked
+            />
+            <span>固定间隔</span>
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              name="intervalMode"
+              value="random"
+            />
+            <span>随机范围</span>
+          </label>
+        </div>
+
+        <div id="fixedIntervalFields">
+          <label class="field field-full">
+            <span>每隔多久醒来一次</span>
+            <select id="fixedInterval"></select>
+          </label>
+        </div>
+
+        <div
+          class="time-grid"
+          id="randomIntervalFields"
+          hidden
+        >
+          <label class="field">
+            <span>最短间隔</span>
+            <select id="intervalMin"></select>
+          </label>
+
+          <label class="field">
+            <span>最长间隔</span>
+            <select id="intervalMax"></select>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="card-heading">
+          <div>
+            <p class="card-number">03</p>
+            <h2>离开聊天后的缓冲</h2>
+          </div>
+        </div>
+
+        <p class="card-description">
+          你短暂切出 App 时先等等，不会立刻把“正在陪谢诗”改成“回卧室休息”。
+        </p>
+
+        <label class="field field-full">
+          <span>缓冲时间</span>
+          <select id="postChatGraceMinutes"></select>
+        </label>
+      </section>
+
+      <p
+        class="form-message"
+        id="formMessage"
+        role="status"
+      ></p>
+
+      <button
+        class="save-button"
+        id="saveButton"
+        type="submit"
+      >
+        保存作息
+      </button>
+    </form>
+
+    <footer class="settings-footer">
+      <span>设置写入 404 数据库，Railway 重启后仍然保留。</span>
+      <a href="home.html">回到首页</a>
+    </footer>
+  </main>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"
+  ></script>
+
+  <script src="js/heart-settings.js"></script>
+</body>
+</html>

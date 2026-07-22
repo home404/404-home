@@ -386,6 +386,22 @@ app.get(
 
 
 app.get(
+  "/api/heart/preferences",
+  createHeartApiHandler(
+    "getHeartPreferences"
+  )
+);
+
+
+app.patch(
+  "/api/heart/preferences",
+  createHeartApiHandler(
+    "patchHeartPreferences"
+  )
+);
+
+
+app.get(
   "/api/heart/brief",
   createHeartApiHandler(
     "getHeartBrief"

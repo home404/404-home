@@ -6,7 +6,8 @@ const SAFE_DESTINATIONS = new Set([
   "living-room.html",
   "chat.html",
   "archive.html",
-  "about.html"
+  "about.html",
+  "heart-settings.html"
 ]);
 
 const entryElements = {
