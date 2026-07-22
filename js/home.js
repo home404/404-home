@@ -1,276 +1,284 @@
 "use strict";
 
-const HOME_STATUS_LABELS = {
-  sleeping: "睡眠中",
-  awake: "刚刚醒过",
-  living_room: "客厅在线",
-  free_activity: "自由活动中"
+const elements = {
+  statusTitle: document.getElementById("homeStatusTitle"),
+  activityList: document.getElementById("homeActivityList"),
+  signOutButton: document.getElementById("homeSignOutButton")
 };
 
-const homeAuthElements = {
-  account: document.getElementById("homeAccount"),
-  email: document.getElementById("homeAccountEmail"),
-  signOutButton:
-    document.getElementById("homeSignOutButton")
+const VISIBLE_ACTIVITY_TYPES = new Set([
+  "heart_leave_note",
+  "heart_leave_message",
+  "heart_write_diary",
+  "heart_reply_comment"
+]);
+
+const ACTIVITY_LABELS = {
+  heart_leave_note: "留了一张纸条",
+  heart_leave_message: "写了一条留言",
+  heart_write_diary: "写了一篇日记",
+  heart_reply_comment: "回复了一条留言"
 };
 
-let homeAuthClient = null;
-let homeSession = null;
+let authClient = null;
+let currentSession = null;
+let latestStatus = null;
+let refreshTimer = null;
+let clockTimer = null;
 
-function setText(id, text) {
-  const element = document.getElementById(id);
+function redirectToEntrance(next = "home.html") {
+  window.location.replace(
+    `index.html?next=${encodeURIComponent(next)}`
+  );
+}
 
-  if (element) {
-    element.textContent = text;
+function formatRemaining(targetValue) {
+  if (!targetValue) {
+    return null;
+  }
+
+  const target = new Date(targetValue);
+
+  if (Number.isNaN(target.getTime())) {
+    return null;
+  }
+
+  const totalMinutes = Math.max(
+    0,
+    Math.ceil((target.getTime() - Date.now()) / 60000)
+  );
+
+  if (totalMinutes < 1) {
+    return "即将结束";
+  }
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours}小时${minutes}分`;
+  }
+
+  if (hours > 0) {
+    return `${hours}小时`;
+  }
+
+  return `${minutes}分钟`;
+}
+
+function getStatusText(result) {
+  const presence = result?.presence ?? {};
+  const status = presence.status ?? "resting";
+
+  if (status === "free_activity") {
+    const endsAt =
+      result?.activePass?.ends_at ??
+      result?.activePass?.endsAt ??
+      presence.free_activity_until ??
+      presence.freeActivityUntil ??
+      null;
+
+    const remaining = formatRemaining(endsAt);
+
+    return remaining
+      ? `G 自由活动中 · 剩余 ${remaining}`
+      : "G 自由活动中";
+  }
+
+  if (status === "chatting" || status === "living_room") {
+    return "G 醒着，正在陪谢诗";
+  }
+
+  if (["awake", "just_awoke"].includes(status)) {
+    return "G 刚刚醒过";
+  }
+
+  if (status === "sleeping") {
+    return "G 睡眠中";
+  }
+
+  return "G 在卧室休息";
+}
+
+function formatEventTime(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(date);
+}
+
+function renderStatus() {
+  const text = latestStatus
+    ? getStatusText(latestStatus)
+    : "G 在卧室休息";
+
+  elements.statusTitle.textContent = text;
+  elements.statusTitle.classList.toggle("is-long", text.length > 12);
+}
+
+function renderActivities(events) {
+  const visibleEvents = (Array.isArray(events) ? events : [])
+    .filter((event) => VISIBLE_ACTIVITY_TYPES.has(event.event_type))
+    .sort((a, b) => {
+      return new Date(b.occurred_at ?? 0) - new Date(a.occurred_at ?? 0);
+    })
+    .slice(0, 3);
+
+  elements.activityList.textContent = "";
+
+  if (!visibleEvents.length) {
+    const empty = document.createElement("p");
+    empty.className = "activity-empty";
+    empty.textContent = "暂无动态";
+    elements.activityList.appendChild(empty);
+    return;
+  }
+
+  for (const event of visibleEvents) {
+    const item = document.createElement("div");
+    item.className = "activity-item";
+
+    const time = document.createElement("time");
+    time.dateTime = event.occurred_at ?? "";
+    time.textContent = formatEventTime(event.occurred_at);
+
+    const label = document.createElement("span");
+    label.textContent =
+      ACTIVITY_LABELS[event.event_type] ?? "留下了一条动态";
+
+    item.append(time, label);
+    elements.activityList.appendChild(item);
   }
 }
 
-function redirectToEntrance(
-  next = "home.html"
-) {
-  const target =
-    `index.html?next=${encodeURIComponent(next)}`;
+async function apiRequest(path, options = {}) {
+  if (!currentSession?.access_token) {
+    throw new Error("登录状态已经失效，请重新开门。");
+  }
 
-  window.location.replace(target);
+  const response = await fetch(path, {
+    ...options,
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${currentSession.access_token}`,
+      ...(options.headers ?? {})
+    },
+    cache: "no-store"
+  });
+
+  let body = null;
+
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+
+  if (!response.ok || body?.ok === false) {
+    throw new Error(
+      body?.message ??
+      body?.error ??
+      `请求失败：${response.status}`
+    );
+  }
+
+  return body;
 }
 
-function renderHomeDate() {
-  const now = new Date();
+async function loadHomeStatus() {
+  try {
+    latestStatus = await apiRequest("/api/heart/status");
+    renderStatus();
+    renderActivities(latestStatus.recentEvents);
+  } catch (error) {
+    console.error("Load home status failed:", error);
+    latestStatus = null;
+    renderStatus();
+    renderActivities([]);
+  }
+}
 
-  const dateText = new Intl.DateTimeFormat(
-    "zh-CN",
+async function initializeAuth() {
+  const configResponse = await fetch("/api/public-config", {
+    cache: "no-store"
+  });
+
+  if (!configResponse.ok) {
+    throw new Error("无法读取全屋门锁配置。");
+  }
+
+  const config = await configResponse.json();
+
+  if (!config.supabaseUrl || !config.supabasePublishableKey) {
+    throw new Error("全屋门锁配置尚未完成。");
+  }
+
+  if (!window.supabase?.createClient) {
+    throw new Error("Supabase 登录组件没有加载成功。");
+  }
+
+  authClient = window.supabase.createClient(
+    config.supabaseUrl,
+    config.supabasePublishableKey,
     {
-      month: "long",
-      day: "numeric",
-      weekday: "long"
-    }
-  ).format(now);
-
-  setText(
-    "homeDate",
-    `欢迎回家 · ${dateText}`
-  );
-}
-
-function renderHomeDashboard(data) {
-  const stateCode =
-    data?.homeStatus?.state ??
-    data?.home_status?.state ??
-    null;
-
-  if (
-    stateCode &&
-    HOME_STATUS_LABELS[stateCode]
-  ) {
-    setText(
-      "home-status-title",
-      HOME_STATUS_LABELS[stateCode]
-    );
-  }
-
-  const unreadCount = Number(
-    data?.heartbeat?.unreadCount ??
-    data?.heartbeatUnreadCount ??
-    0
-  );
-
-  setText(
-    "heartbeatStatus",
-    unreadCount > 0
-      ? `有 ${unreadCount} 条未读留言`
-      : "暂无留言"
-  );
-
-  const currentActivity =
-    data?.activity?.title ??
-    data?.currentActivity?.title ??
-    null;
-
-  setText(
-    "activityStatus",
-    currentActivity ||
-      "当前没有活动"
-  );
-
-  const recentItem =
-    data?.recentItem?.title ??
-    data?.recentCompleted?.title ??
-    null;
-
-  if (recentItem) {
-    setText(
-      "recentStatus",
-      recentItem
-    );
-    return;
-  }
-
-  if (data?.supabase?.connected === true) {
-    setText(
-      "recentStatus",
-      "云端数据库已接通"
-    );
-    return;
-  }
-
-  setText(
-    "recentStatus",
-    "暂无最近事项"
-  );
-}
-
-async function loadHomeDashboard() {
-  renderHomeDate();
-
-  try {
-    const response = await fetch(
-      "/status",
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json"
-        },
-        cache: "no-store"
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
       }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Home status request failed: ${response.status}`
-      );
     }
+  );
 
-    const data = await response.json();
+  const {
+    data: { session },
+    error
+  } = await authClient.auth.getSession();
 
-    renderHomeDashboard(data);
-  } catch (error) {
-    console.error(
-      "Load home dashboard failed:",
-      error
-    );
-
-    setText(
-      "recentStatus",
-      "小窝暂时离线"
-    );
+  if (error) {
+    throw error;
   }
-}
 
-function renderHomeSession(session) {
-  homeSession = session ?? null;
-
-  if (!homeSession) {
+  if (!session) {
     redirectToEntrance();
-    return;
-  }
-
-  homeAuthElements.email.textContent =
-    homeSession.user?.email ??
-    "屋主已登录";
-
-  homeAuthElements.account.hidden = false;
-}
-
-async function initializeHomeAuth() {
-  try {
-    const configResponse = await fetch(
-      "/api/public-config",
-      { cache: "no-store" }
-    );
-
-    if (!configResponse.ok) {
-      throw new Error(
-        "无法读取全屋门锁配置。"
-      );
-    }
-
-    const config =
-      await configResponse.json();
-
-    if (
-      !config.supabaseUrl ||
-      !config.supabasePublishableKey
-    ) {
-      throw new Error(
-        "全屋门锁配置尚未完成。"
-      );
-    }
-
-    if (!window.supabase?.createClient) {
-      throw new Error(
-        "Supabase 登录组件没有加载成功。"
-      );
-    }
-
-    homeAuthClient =
-      window.supabase.createClient(
-        config.supabaseUrl,
-        config.supabasePublishableKey,
-        {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-          }
-        }
-      );
-
-    const {
-      data: { session },
-      error
-    } =
-      await homeAuthClient.auth.getSession();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!session) {
-      redirectToEntrance();
-      return false;
-    }
-
-    renderHomeSession(session);
-
-    homeAuthClient.auth.onAuthStateChange(
-      (_event, nextSession) => {
-        queueMicrotask(() => {
-          renderHomeSession(nextSession);
-        });
-      }
-    );
-
-    return true;
-  } catch (error) {
-    console.error(
-      "Home auth initialization failed:",
-      error
-    );
-
-    setText(
-      "recentStatus",
-      error?.message ??
-        "全屋门锁暂时离线"
-    );
-
     return false;
   }
+
+  currentSession = session;
+
+  authClient.auth.onAuthStateChange((_event, nextSession) => {
+    queueMicrotask(() => {
+      currentSession = nextSession;
+
+      if (!nextSession) {
+        redirectToEntrance();
+      }
+    });
+  });
+
+  return true;
 }
 
-async function handleHomeSignOut() {
-  if (!homeAuthClient) {
+async function handleSignOut() {
+  if (!authClient) {
     return;
   }
 
-  homeAuthElements.signOutButton.disabled =
-    true;
-
-  homeAuthElements.signOutButton.textContent =
-    "正在退出……";
+  elements.signOutButton.disabled = true;
+  elements.signOutButton.textContent = "正在出门……";
 
   try {
-    const { error } =
-      await homeAuthClient.auth.signOut();
+    const { error } = await authClient.auth.signOut();
 
     if (error) {
       throw error;
@@ -278,34 +286,45 @@ async function handleHomeSignOut() {
 
     window.location.replace("index.html");
   } catch (error) {
-    console.error(
-      "Home sign out failed:",
-      error
-    );
-
-    homeAuthElements.signOutButton.disabled =
-      false;
-
-    homeAuthElements.signOutButton.textContent =
-      "退出失败，重试";
+    console.error("Home sign out failed:", error);
+    elements.signOutButton.disabled = false;
+    elements.signOutButton.textContent = "出门";
   }
 }
 
-homeAuthElements.signOutButton.addEventListener(
-  "click",
-  () => {
-    void handleHomeSignOut();
-  }
-);
+elements.signOutButton.addEventListener("click", () => {
+  void handleSignOut();
+});
 
-document.addEventListener(
-  "DOMContentLoaded",
-  async () => {
-    const authenticated =
-      await initializeHomeAuth();
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const authenticated = await initializeAuth();
 
-    if (authenticated) {
-      await loadHomeDashboard();
+    if (!authenticated) {
+      return;
     }
+
+    await loadHomeStatus();
+
+    refreshTimer = window.setInterval(() => {
+      void loadHomeStatus();
+    }, 30000);
+
+    clockTimer = window.setInterval(renderStatus, 60000);
+  } catch (error) {
+    console.error("Initialize home failed:", error);
+    latestStatus = null;
+    renderStatus();
+    renderActivities([]);
   }
-);
+});
+
+window.addEventListener("pagehide", () => {
+  if (refreshTimer) {
+    window.clearInterval(refreshTimer);
+  }
+
+  if (clockTimer) {
+    window.clearInterval(clockTimer);
+  }
+});

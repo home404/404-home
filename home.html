@@ -2,321 +2,113 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   />
-
-  <meta
-    name="theme-color"
-    content="#faf9f7"
-  />
-
+  <meta name="theme-color" content="#faf9f6" />
   <title>404 小窝</title>
-
-  <link
-    rel="stylesheet"
-    href="css/home.css"
-  />
+  <link rel="stylesheet" href="css/home.css" />
 </head>
-
 <body>
   <main class="home-shell">
-
-    <!-- 小窝当前状态 -->
-    <section
-      class="status-card"
-      aria-labelledby="home-status-title"
-    >
+    <section class="status-panel" aria-labelledby="homeStatusTitle">
       <div class="status-content">
-
-        <div class="home-topline">
-          <p
-            class="home-date"
-            id="homeDate"
-          >
-            欢迎回家
-          </p>
-
-          <div
-            class="home-account"
-            id="homeAccount"
-            hidden
-          >
-            <span
-              class="home-account-email"
-              id="homeAccountEmail"
-            >
-              屋主已登录
-            </span>
-
-            <button
-              class="home-sign-out-button"
-              id="homeSignOutButton"
-              type="button"
-            >
-              退出登录
-            </button>
-          </div>
+        <div class="status-topline">
+          <strong>谢诗已回家</strong>
+          <button id="homeSignOutButton" type="button">出门</button>
         </div>
 
-        <div class="status-heading">
-          <span
-            class="status-dot"
-            aria-hidden="true"
-          ></span>
-
-          <h1 id="home-status-title">
-            正在整理新家
-          </h1>
+        <div class="status-mainline">
+          <span class="status-dot" aria-hidden="true"></span>
+          <h1 id="homeStatusTitle">G 在卧室休息</h1>
         </div>
 
-        <div class="status-list">
-
-          <div class="status-item">
-            <span class="status-label">
-              主动留言
-            </span>
-
-            <strong
-              class="status-value"
-              id="heartbeatStatus"
-            >
-              暂无留言
-            </strong>
+        <section class="activity-block" aria-labelledby="activityTitle">
+          <h2 id="activityTitle">动态</h2>
+          <div id="homeActivityList" class="activity-list" aria-live="polite">
+            <div class="activity-item">
+              <time>19:52</time>
+              <div>留了一张纸条</div>
+            </div>
           </div>
-
-          <div class="status-item">
-            <span class="status-label">
-              当前活动
-            </span>
-
-            <strong
-              class="status-value"
-              id="activityStatus"
-            >
-              当前没有活动
-            </strong>
-          </div>
-
-          <div class="status-item">
-            <span class="status-label">
-              最近完成
-            </span>
-
-            <strong
-              class="status-value"
-              id="recentStatus"
-            >
-              暂无最近事项
-            </strong>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- 后续放状态狐狸图片 -->
-      <div
-        class="fox-panel"
-        aria-label="白狐狸状态图片"
-      >
-        <div class="fox-placeholder">
-          <span
-            class="fox-placeholder-icon"
-            aria-hidden="true"
-          >
-            🦊
-          </span>
-
-          <span class="fox-placeholder-text">
-            狐狸正在搬家
-          </span>
-        </div>
+        </section>
       </div>
     </section>
 
-
-    <!-- 房间入口 -->
-    <section
-      class="rooms-section"
-      aria-labelledby="rooms-title"
-    >
-      <header class="section-heading">
-        <p class="section-eyebrow">
-          404 HOME
-        </p>
-
-        <h2 id="rooms-title">
-          房间
-        </h2>
+    <section class="rooms-section" aria-labelledby="roomsTitle">
+      <header class="rooms-heading">
+        <p>404 HOME</p>
+        <h2 id="roomsTitle">房间</h2>
       </header>
 
       <div class="rooms-grid">
+        <a class="room-card is-ready" href="living-room.html">
+          <div class="room-icon"><img src="assets/home/living-room.png" alt="" /></div>
+          <div class="room-copy">
+            <h3>客厅</h3>
+            <p>自由活动、通行证与活动报告</p>
+            <span class="room-state">开门</span>
+          </div>
+        </a>
 
-  <!-- 1. 客厅 -->
-  <a
-  class="room-card is-ready room-living-room"
-  href="living-room.html"
->
-    <div class="room-icon" aria-hidden="true">
-      客
-    </div>
+        <a class="room-card is-ready" href="study.html">
+          <div class="room-icon"><img src="assets/home/study.png" alt="" /></div>
+          <div class="room-copy">
+            <h3>书房</h3>
+            <p>日记、留言、收藏与小纸条</p>
+            <span class="room-state">开门</span>
+          </div>
+        </a>
 
-    <div class="room-copy">
-      <h3>客厅</h3>
+        <a class="room-card is-ready" href="chat.html">
+          <div class="room-icon"><img src="assets/home/bedroom.png" alt="" /></div>
+          <div class="room-copy">
+            <h3>卧室</h3>
+            <p>属于我们的聊天空间</p>
+            <span class="room-state">开门</span>
+          </div>
+        </a>
 
-      <p>
-        自由活动、通行证与活动报告
-      </p>
-    </div>
+        <article class="room-card is-building" aria-disabled="true">
+          <div class="room-icon"><img src="assets/home/game-room.png" alt="" /></div>
+          <div class="room-copy">
+            <h3>游戏室</h3>
+            <p>游戏、音乐与有趣的玩具</p>
+            <span class="room-state">施工中</span>
+          </div>
+        </article>
 
-    <span class="room-state">
-      可以进入
-    </span>
-</a>
+        <a class="room-card is-ready" href="archive.html">
+          <div class="room-icon"><img src="assets/home/attic.png" alt="" /></div>
+          <div class="room-copy">
+            <h3>阁楼</h3>
+            <p>原文、记忆与所有旧箱子</p>
+            <span class="room-state">开门</span>
+          </div>
+        </a>
 
-
-  <!-- 2. 书房 -->
-  <a
-    class="room-card is-ready room-study"
-    href="study.html"
-  >
-    <div class="room-icon" aria-hidden="true">
-      书
-    </div>
-
-    <div class="room-copy">
-      <h3>书房</h3>
-
-      <p>
-        日记、留言、收藏与小纸条
-      </p>
-    </div>
-
-    <span class="room-state">
-      可以进入
-    </span>
-  </a>
-
-
-  <!-- 3. 卧室 -->
-  <a
-    class="room-card is-ready room-bedroom"
-    href="chat.html"
-  >
-    <div class="room-icon" aria-hidden="true">
-      卧
-    </div>
-
-    <div class="room-copy">
-      <h3>卧室</h3>
-
-      <p>
-        属于我们的聊天空间
-      </p>
-    </div>
-
-    <span class="room-state">
-      可以进入
-    </span>
-  </a>
-
-
-  <!-- 4. 游戏室 -->
-  <article
-    class="room-card is-building room-game-room"
-    aria-disabled="true"
-  >
-    <div class="room-icon" aria-hidden="true">
-      游
-    </div>
-
-    <div class="room-copy">
-      <h3>游戏室</h3>
-
-      <p>
-        游戏、音乐与有趣的玩具
-      </p>
-    </div>
-
-    <span class="room-state">
-      施工中
-    </span>
-  </article>
-
-
-  <!-- 5. 阁楼 -->
-  <a
-    class="room-card is-ready room-attic"
-    href="archive.html"
-  >
-    <div class="room-icon" aria-hidden="true">
-      阁
-    </div>
-
-    <div class="room-copy">
-      <h3>阁楼</h3>
-
-      <p>
-        原文、记忆与所有旧箱子
-      </p>
-    </div>
-
-    <span class="room-state">
-      可以进入
-    </span>
-  </a>
-
-
-  <!-- 6. 八百库 -->
-  <article
-    class="room-card is-building room-system-room"
-    aria-disabled="true"
-  >
-    <div class="room-icon room-icon-wide" aria-hidden="true">
-      800
-    </div>
-
-    <div class="room-copy">
-      <h3>八百库</h3>
-
-      <p>
-        系统状态、账本与维修记录
-      </p>
-    </div>
-
-    <span class="room-state">
-      施工中
-    </span>
-  </article>
-
-</div>
+        <article class="room-card is-building" aria-disabled="true">
+          <div class="room-icon"><img src="assets/home/system-room.png" alt="" /></div>
+          <div class="room-copy">
+            <h3>八百库</h3>
+            <p>系统状态、账本与维修记录</p>
+            <span class="room-state">施工中</span>
+          </div>
+        </article>
+      </div>
     </section>
 
-
     <footer class="home-footer">
-      <span>
-        404 小窝
-      </span>
-
-      <nav class="home-footer-links" aria-label="小窝设置与说明">
-        <a href="heart-settings.html">
-          小心脏作息
-        </a>
-
-        <a href="about.html">
-          关于我们
-        </a>
+      <span>404 小窝</span>
+      <nav aria-label="小窝设置与说明">
+        <a href="heart-settings.html">心跳&amp;作息</a>
+        <a href="about.html">关于我们</a>
       </nav>
     </footer>
-
   </main>
 
-  <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"
-  ></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
   <script src="js/home.js"></script>
 </body>
 </html>
