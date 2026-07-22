@@ -2043,7 +2043,9 @@ export function createHeartService({
     runMode = "manual_wake",
     wakeKind = "manual",
     source = "mcp",
-    activityPassId = null
+    activityPassId = null,
+    scheduledFor = null,
+    workerClaimToken = null
   }) {
     if (!openaiClient) {
       throw new HeartServiceError(
@@ -2054,6 +2056,14 @@ export function createHeartService({
     }
 
     const now = new Date();
+
+    const scheduledDate =
+      scheduledFor &&
+      !Number.isNaN(
+        new Date(scheduledFor).getTime()
+      )
+        ? new Date(scheduledFor)
+        : now;
 
     let activePass =
       await getActivePass(userId);
@@ -2104,7 +2114,11 @@ export function createHeartService({
             now.toISOString(),
           metadata: {
             heartVersion:
-              "0.1.0"
+              "0.1.0",
+            scheduledFor:
+              scheduledDate.toISOString(),
+            workerClaimToken:
+              workerClaimToken ?? null
           }
         })
         .select("*")
@@ -2126,13 +2140,15 @@ export function createHeartService({
             status:
               "running",
             scheduled_for:
-              now.toISOString(),
+              scheduledDate.toISOString(),
             started_at:
               now.toISOString(),
             metadata: {
               runMode:
                 resolvedRunMode,
-              source
+              source,
+              workerClaimToken:
+                workerClaimToken ?? null
             }
           })
           .select("*")
@@ -2613,6 +2629,539 @@ export function createHeartService({
   }
 
 
+  async function getActivityPassUsage(
+    activityPassId
+  ) {
+    const rows = await requireData(
+      serviceClient
+        .from("activity_runs")
+        .select([
+          "status",
+          "estimated_cost_usd"
+        ].join(", "))
+        .eq(
+          "activity_pass_id",
+          activityPassId
+        ),
+      "activity_pass_usage_read_failed",
+      "无法读取自由活动额度使用情况"
+    );
+
+    const countedStatuses = new Set([
+      "running",
+      "completed",
+      "silent",
+      "failed"
+    ]);
+
+    let modelCalls = 0;
+    let estimatedCostUsd = 0;
+
+    for (const row of rows ?? []) {
+      if (countedStatuses.has(row.status)) {
+        modelCalls += 1;
+      }
+
+      const cost = Number(
+        row.estimated_cost_usd ?? 0
+      );
+
+      if (Number.isFinite(cost)) {
+        estimatedCostUsd += cost;
+      }
+    }
+
+    return {
+      modelCalls,
+      estimatedCostUsd:
+        Number(estimatedCostUsd.toFixed(6))
+    };
+  }
+
+
+  async function finishActivityPass({
+    userId,
+    activePass,
+    reason,
+    now
+  }) {
+    await requireData(
+      serviceClient
+        .from("activity_passes")
+        .update({
+          status: "completed"
+        })
+        .eq("id", activePass.id)
+        .eq("owner_user_id", userId)
+        .in("status", [
+          "scheduled",
+          "active"
+        ])
+        .select("*")
+        .maybeSingle(),
+      "activity_pass_complete_failed",
+      "无法完成自由活动通行证"
+    );
+
+    await insertHomeEvent({
+      userId,
+      actor: "system",
+      source: "worker",
+      eventType:
+        "free_activity_completed",
+      room: "living_room",
+      title: "自由活动已完成",
+      detail: reason,
+      isUserVisible: true,
+      activityPassId: activePass.id,
+      metadata: {
+        completedAt: now.toISOString(),
+        completionReason: reason
+      }
+    });
+  }
+
+
+  async function getScheduledWakePlan({
+    userId,
+    now = new Date()
+  }) {
+    const currentTime =
+      now instanceof Date
+        ? now
+        : new Date(now);
+
+    if (Number.isNaN(currentTime.getTime())) {
+      throw new HeartServiceError(
+        "invalid_worker_time",
+        "Worker 提供了无效时间",
+        500
+      );
+    }
+
+    let presence = await ensurePresence({
+      userId,
+      source: "worker"
+    });
+
+    const activePass =
+      await getActivePass(userId);
+
+    if (activePass) {
+      const usage =
+        await getActivityPassUsage(
+          activePass.id
+        );
+
+      const maxModelCalls =
+        activePass.max_model_calls == null
+          ? null
+          : Number(
+              activePass.max_model_calls
+            );
+
+      const maxCostUsd =
+        activePass.max_cost_usd == null
+          ? null
+          : Number(
+              activePass.max_cost_usd
+            );
+
+      let completionReason = null;
+
+      if (
+        Number.isFinite(maxModelCalls) &&
+        usage.modelCalls >= maxModelCalls
+      ) {
+        completionReason =
+          `已达到 ${maxModelCalls} 次模型调用上限。`;
+      } else if (
+        Number.isFinite(maxCostUsd) &&
+        usage.estimatedCostUsd >= maxCostUsd
+      ) {
+        completionReason =
+          `已达到 $${maxCostUsd.toFixed(2)} 的活动预算上限。`;
+      }
+
+      if (completionReason) {
+        await finishActivityPass({
+          userId,
+          activePass,
+          reason: completionReason,
+          now: currentTime
+        });
+
+        const preferenceResult =
+          await getHeartPreferences({
+            userId
+          });
+
+        const schedule =
+          calculateNextAutomaticWake({
+            fromDate: currentTime,
+            preferences:
+              preferenceResult.preferences
+          });
+
+        presence = await requireData(
+          serviceClient
+            .from("home_presence")
+            .update({
+              status: "resting",
+              status_detail:
+                "G 在卧室休息",
+              source: "worker",
+              current_activity_pass_id:
+                null,
+              current_activity_run_id:
+                null,
+              free_activity_until:
+                null,
+              next_heartbeat_at:
+                schedule.nextWakeAt
+                  ?.toISOString() ?? null
+            })
+            .eq("owner_user_id", userId)
+            .select("*")
+            .single(),
+          "presence_pass_complete_failed",
+          "无法更新自由活动结束状态"
+        );
+
+        return {
+          shouldRun: false,
+          skipReason:
+            "activity_pass_limit_reached",
+          skipDetail: completionReason,
+          nextHeartbeatAt:
+            schedule.nextWakeAt,
+          runMode: null,
+          wakeKind: "scheduled",
+          activePass: null,
+          presence,
+          preferences:
+            preferenceResult.preferences,
+          usage
+        };
+      }
+
+      return {
+        shouldRun: true,
+        skipReason: null,
+        skipDetail: null,
+        nextHeartbeatAt: null,
+        runMode: "free_activity",
+        wakeKind: "scheduled",
+        activePass,
+        presence,
+        preferences: null,
+        usage
+      };
+    }
+
+    const pausedUntil =
+      presence.heartbeat_paused_until
+        ? new Date(
+            presence.heartbeat_paused_until
+          )
+        : null;
+
+    const pauseStillActive =
+      pausedUntil &&
+      !Number.isNaN(
+        pausedUntil.getTime()
+      ) &&
+      pausedUntil > currentTime;
+
+    if (
+      presence.status === "free_activity" ||
+      (
+        ["awake", "just_awoke"].includes(
+          presence.status
+        ) &&
+        !pauseStillActive
+      )
+    ) {
+      presence = await requireData(
+        serviceClient
+          .from("home_presence")
+          .update({
+            status: "resting",
+            status_detail:
+              "G 在卧室休息",
+            source: "worker",
+            current_activity_pass_id:
+              null,
+            current_activity_run_id:
+              null,
+            awake_until: null,
+            free_activity_until: null,
+            heartbeat_paused_until:
+              pauseStillActive
+                ? pausedUntil.toISOString()
+                : null
+          })
+          .eq("owner_user_id", userId)
+          .select("*")
+          .single(),
+        "presence_worker_normalize_failed",
+        "无法整理自动唤醒前的状态"
+      );
+    }
+
+    const preferenceResult =
+      await getHeartPreferences({
+        userId
+      });
+
+    const preferences =
+      preferenceResult.preferences;
+
+    if (!preferences.autoHeartbeatEnabled) {
+      return {
+        shouldRun: false,
+        skipReason:
+          "auto_heartbeat_disabled",
+        skipDetail:
+          "自动心跳目前关闭。",
+        nextHeartbeatAt: null,
+        runMode: null,
+        wakeKind: "scheduled",
+        activePass: null,
+        presence,
+        preferences
+      };
+    }
+
+    if (presence.status === "chatting") {
+      const nextHeartbeatAt = addMinutes(
+        currentTime,
+        Math.max(
+          5,
+          preferences.postChatGraceMinutes
+        )
+      );
+
+      return {
+        shouldRun: false,
+        skipReason: "user_chatting",
+        skipDetail:
+          "谢诗正在聊天，自动心跳暂缓。",
+        nextHeartbeatAt,
+        runMode: null,
+        wakeKind: "scheduled",
+        activePass: null,
+        presence,
+        preferences
+      };
+    }
+
+    if (pauseStillActive) {
+      const schedule =
+        calculateNextAutomaticWake({
+          fromDate: pausedUntil,
+          preferences
+        });
+
+      return {
+        shouldRun: false,
+        skipReason:
+          "heartbeat_temporarily_paused",
+        skipDetail:
+          "自动心跳仍在缓冲或暂停时间内。",
+        nextHeartbeatAt:
+          schedule.nextWakeAt,
+        runMode: null,
+        wakeKind: "scheduled",
+        activePass: null,
+        presence,
+        preferences
+      };
+    }
+
+    const quietWindow =
+      getQuietWindowContaining(
+        currentTime,
+        preferences
+      );
+
+    if (quietWindow) {
+      const schedule =
+        calculateNextAutomaticWake({
+          fromDate: currentTime,
+          preferences
+        });
+
+      return {
+        shouldRun: false,
+        skipReason: "quiet_hours",
+        skipDetail:
+          `当前处于休息时段 ${preferences.quietStart}–${preferences.quietEnd}。`,
+        nextHeartbeatAt:
+          schedule.nextWakeAt,
+        runMode: null,
+        wakeKind: "scheduled",
+        activePass: null,
+        presence,
+        preferences
+      };
+    }
+
+    return {
+      shouldRun: true,
+      skipReason: null,
+      skipDetail: null,
+      nextHeartbeatAt: null,
+      runMode: "heartbeat",
+      wakeKind: "scheduled",
+      activePass: null,
+      presence,
+      preferences
+    };
+  }
+
+
+  async function releaseHeartbeatClaim({
+    userId,
+    claimToken,
+    nextHeartbeatAt = undefined,
+    metadataPatch = {}
+  }) {
+    const current = await requireData(
+      serviceClient
+        .from("home_presence")
+        .select([
+          "owner_user_id",
+          "metadata",
+          "heartbeat_claim_token"
+        ].join(", "))
+        .eq("owner_user_id", userId)
+        .eq(
+          "heartbeat_claim_token",
+          claimToken
+        )
+        .maybeSingle(),
+      "heartbeat_claim_read_failed",
+      "无法读取自动心跳抢占状态"
+    );
+
+    if (!current) {
+      return {
+        released: false,
+        presence: null
+      };
+    }
+
+    const patch = {
+      heartbeat_claim_token: null,
+      heartbeat_claimed_at: null,
+      heartbeat_lease_until: null,
+      metadata: {
+        ...(current.metadata ?? {}),
+        ...metadataPatch,
+        heartbeatClaimReleasedAt:
+          new Date().toISOString()
+      }
+    };
+
+    if (nextHeartbeatAt !== undefined) {
+      patch.next_heartbeat_at =
+        nextHeartbeatAt
+          ? new Date(
+              nextHeartbeatAt
+            ).toISOString()
+          : null;
+    }
+
+    const presence = await requireData(
+      serviceClient
+        .from("home_presence")
+        .update(patch)
+        .eq("owner_user_id", userId)
+        .eq(
+          "heartbeat_claim_token",
+          claimToken
+        )
+        .select("*")
+        .maybeSingle(),
+      "heartbeat_claim_release_failed",
+      "无法释放自动心跳抢占"
+    );
+
+    return {
+      released: Boolean(presence),
+      presence
+    };
+  }
+
+
+  async function recordScheduledSkip({
+    userId,
+    claimToken,
+    scheduledFor,
+    skipReason,
+    skipDetail = null,
+    nextHeartbeatAt = null,
+    metadata = {}
+  }) {
+    const now = new Date();
+
+    const heartbeat = await requireData(
+      serviceClient
+        .from("heartbeat_runs")
+        .insert({
+          owner_user_id: userId,
+          activity_run_id: null,
+          wake_kind: "scheduled",
+          status: "skipped",
+          scheduled_for:
+            new Date(
+              scheduledFor ?? now
+            ).toISOString(),
+          started_at: now.toISOString(),
+          completed_at: now.toISOString(),
+          next_wake_at:
+            nextHeartbeatAt
+              ? new Date(
+                  nextHeartbeatAt
+                ).toISOString()
+              : null,
+          decision: "skip",
+          skip_reason:
+            skipReason,
+          metadata: {
+            ...metadata,
+            skipDetail,
+            workerClaimToken:
+              claimToken
+          }
+        })
+        .select("*")
+        .single(),
+      "heartbeat_skip_record_failed",
+      "无法记录自动心跳跳过原因"
+    );
+
+    const release =
+      await releaseHeartbeatClaim({
+        userId,
+        claimToken,
+        nextHeartbeatAt,
+        metadataPatch: {
+          lastWorkerSkipReason:
+            skipReason,
+          lastWorkerSkipAt:
+            now.toISOString()
+        }
+      });
+
+    return {
+      heartbeat,
+      release
+    };
+  }
+
+
   async function getHomeBrief({
     userId,
     limit = 30,
@@ -2751,6 +3300,9 @@ export function createHeartService({
     updateHeartPreferences,
     getHomeStatus,
     grantFreeActivity,
+    getScheduledWakePlan,
+    releaseHeartbeatClaim,
+    recordScheduledSkip,
     runOnce,
     getHomeBrief
   };
