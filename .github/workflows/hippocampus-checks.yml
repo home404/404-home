@@ -37,6 +37,7 @@ jobs:
           node --check services/home-orchestration-service.mjs
           node --check services/heartbeat-context-service.mjs
           node --check routes/home-orchestration-api.mjs
+          node --check routes/shortcut-bridge-api.mjs
           node --check worker/heart-worker-v03.mjs
           node --check js/heart-settings.js
           node --check js/chat-v2.js
