@@ -37,10 +37,15 @@ jobs:
           node --check services/home-orchestration-service.mjs
           node --check services/heartbeat-context-service.mjs
           node --check services/living-room-service.mjs
+          node --check services/bedroom-summary-service.mjs
+          node --check services/interaction-guard-service.mjs
           node --check routes/home-orchestration-api.mjs
+          node --check routes/interaction-guard-api.mjs
           node --check routes/living-room-api.mjs
+          node --check routes/bedroom-api.mjs
           node --check routes/shortcut-bridge-api.mjs
           node --check worker/heart-worker-v04.mjs
           node --check js/heart-settings.js
           node --check js/chat-v2.js
           node --check js/living-room.js
+          node --check js/bedroom-v2.js
