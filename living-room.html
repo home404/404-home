@@ -2,26 +2,18 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   />
-
   <meta name="theme-color" content="#faf9f7" />
-
   <title>客厅｜404 小窝</title>
-
-  <link
-    rel="stylesheet"
-    href="css/living-room.css"
-  />
+  <link rel="stylesheet" href="css/living-room.css" />
+  <link rel="stylesheet" href="css/living-room-controls.css" />
 </head>
 
 <body>
   <main class="living-room-shell">
-
-    <!-- 顶部导航 -->
     <header class="room-header">
       <a
         class="back-home-link"
@@ -32,42 +24,47 @@
       </a>
 
       <div class="room-heading">
-        <p class="room-eyebrow">
-          404 HOME · LIVING ROOM
-        </p>
-
-        <h1>
-          客厅
-        </h1>
-
+        <p class="room-eyebrow">404 HOME · LIVING ROOM</p>
+        <h1>客厅</h1>
         <p class="room-description">
-          自由活动、清醒通行证与活动记录
+          自由活动、活动通行证与未完成事项都放在这里
         </p>
       </div>
     </header>
 
+    <section
+      class="release-lock-banner"
+      id="releaseLockBanner"
+      aria-live="polite"
+    >
+      <strong>自动心跳仍在测试锁内</strong>
+      <span>
+        客厅里的手动通行证可以单独测试；日常自然醒来暂时不会自行启动。
+      </span>
+    </section>
 
-    <!-- 当前自由活动 -->
+    <p
+      class="page-message"
+      id="pageMessage"
+      role="status"
+      aria-live="polite"
+    ></p>
+
     <section
       class="living-panel current-activity-panel"
       aria-labelledby="currentActivityTitle"
     >
       <div class="panel-heading-row">
         <div>
-          <p class="panel-eyebrow">
-            CURRENT ACTIVITY
-          </p>
-
-          <h2 id="currentActivityTitle">
-            当前自由活动
-          </h2>
+          <p class="panel-eyebrow">CURRENT ACTIVITY</p>
+          <h2 id="currentActivityTitle">当前自由活动</h2>
         </div>
 
         <span
           class="activity-state"
           id="activityState"
         >
-          未在活动
+          正在读取
         </span>
       </div>
 
@@ -75,19 +72,12 @@
         class="empty-state"
         id="activityEmptyState"
       >
-        <p class="empty-state-title">
-          客厅现在很安静
-        </p>
-
+        <p class="empty-state-title">客厅现在很安静</p>
         <p class="empty-state-text">
-          目前没有正在进行的自由活动
+          目前没有正在进行或等待续接的自由活动
         </p>
       </div>
 
-      <!--
-        正式活动开始后，由 living-room.js 填入：
-        活动名称、剩余时间、步骤、预算与控制状态
-      -->
       <div
         class="activity-detail"
         id="activityDetail"
@@ -105,8 +95,8 @@
 
         <dl class="activity-facts">
           <div>
-            <dt>开始时间</dt>
-            <dd id="activityStartedAt">—</dd>
+            <dt>真正活动时间</dt>
+            <dd id="activityUsedTime">—</dd>
           </div>
 
           <div>
@@ -115,28 +105,84 @@
           </div>
 
           <div>
-            <dt>当前步骤</dt>
-            <dd id="activityCurrentStep">—</dd>
+            <dt>续接方式</dt>
+            <dd id="activityResumePolicy">—</dd>
           </div>
         </dl>
+
+        <div class="activity-actions" id="activityActions">
+          <button
+            class="primary-action"
+            id="resumeActivityButton"
+            type="button"
+          >
+            继续自由活动
+          </button>
+
+          <button
+            class="secondary-action"
+            id="pauseActivityButton"
+            type="button"
+          >
+            暂停并保存
+          </button>
+        </div>
       </div>
     </section>
 
+    <section
+      class="living-panel unfinished-panel"
+      id="unfinishedPanel"
+      aria-labelledby="unfinishedTitle"
+      hidden
+    >
+      <div class="panel-heading-row compact-heading">
+        <div>
+          <p class="panel-eyebrow">UNFINISHED TASK</p>
+          <h2 id="unfinishedTitle">上次还有事情没做完</h2>
+        </div>
+      </div>
 
-    <!-- 清醒通行证 -->
+      <p class="unfinished-summary" id="unfinishedSummary"></p>
+
+      <div class="choice-grid">
+        <button
+          class="choice-card"
+          id="handoffButton"
+          type="button"
+        >
+          <strong>现在接管</strong>
+          <span>把进度交给当前聊天里的 G，后台停止继续做。</span>
+        </button>
+
+        <button
+          class="choice-card"
+          id="afterChatButton"
+          type="button"
+        >
+          <strong>聊完继续</strong>
+          <span>先保存现场，互动结束后按剩余时间自动续上。</span>
+        </button>
+
+        <button
+          class="choice-card"
+          id="holdButton"
+          type="button"
+        >
+          <strong>先放着</strong>
+          <span>保留进度，不自动恢复，等大管家下次再决定。</span>
+        </button>
+      </div>
+    </section>
+
     <section
       class="living-panel pass-panel"
       aria-labelledby="passTitle"
     >
       <div class="panel-heading-row">
         <div>
-          <p class="panel-eyebrow">
-            AWAKE PASS
-          </p>
-
-          <h2 id="passTitle">
-            清醒通行证
-          </h2>
+          <p class="panel-eyebrow">ACTIVITY PASS</p>
+          <h2 id="passTitle">活动通行证</h2>
         </div>
 
         <span
@@ -147,42 +193,210 @@
         </span>
       </div>
 
-      <div class="pass-content">
-        <div class="pass-mark" aria-hidden="true">
-          404
-        </div>
-
+      <div class="pass-content" id="passCard">
+        <div class="pass-mark" aria-hidden="true">404</div>
         <div class="pass-copy">
-          <p class="pass-name">
-            第001号清醒通行证
+          <p class="pass-name" id="passName">
+            客厅自由活动通行证
           </p>
-
-          <p class="pass-status">
-            等待第一次正式自由活动
+          <p class="pass-status" id="passStatus">
+            等待大管家签发
           </p>
-
-          <p class="pass-note">
-            通行证会记录活动时长、权限、预算、步骤和最终报告
+          <p class="pass-note" id="passNote">
+            时间只计算真正活动的部分；官端或卧室聊天期间自动暂停。
           </p>
         </div>
       </div>
+
+      <form class="pass-form" id="passForm">
+        <label class="field-block field-wide">
+          <span>这次想让我做什么</span>
+          <textarea
+            id="passTask"
+            rows="3"
+            maxlength="2000"
+            placeholder="例如：整理最近的施工记录，看看书房有没有想回复的评论，也可以自由决定。"
+            required
+          ></textarea>
+        </label>
+
+        <div class="form-grid">
+          <label class="field-block">
+            <span>真正活动时间</span>
+            <select id="passDurationMinutes">
+              <option value="30">30 分钟</option>
+              <option value="60">1 小时</option>
+              <option value="120" selected>2 小时</option>
+              <option value="240">4 小时</option>
+              <option value="480">8 小时</option>
+            </select>
+          </label>
+
+          <label class="field-block">
+            <span>聊天结束后的默认处理</span>
+            <select id="passResumePolicy">
+              <option value="after_chat" selected>聊完自动继续</option>
+              <option value="manual">等我手动决定</option>
+              <option value="interactive_handoff">交给聊天窗口接管</option>
+            </select>
+          </label>
+        </div>
+
+        <details class="advanced-settings">
+          <summary>活动预算与高级设置</summary>
+
+          <div class="form-grid advanced-grid">
+            <label class="field-block">
+              <span>输入 Token 上限</span>
+              <input
+                id="passInputBudget"
+                type="number"
+                min="0"
+                step="1000"
+                value="32000"
+                inputmode="numeric"
+              />
+            </label>
+
+            <label class="field-block">
+              <span>输出 Token 上限</span>
+              <input
+                id="passOutputBudget"
+                type="number"
+                min="0"
+                step="1000"
+                value="96000"
+                inputmode="numeric"
+              />
+            </label>
+
+            <label class="field-block">
+              <span>模型调用上限</span>
+              <input
+                id="passMaxModelCalls"
+                type="number"
+                min="1"
+                step="1"
+                value="6"
+                inputmode="numeric"
+              />
+            </label>
+
+            <label class="field-block">
+              <span>费用保险丝（美元）</span>
+              <input
+                id="passMaxCostUsd"
+                type="number"
+                min="0"
+                step="0.10"
+                value="3.00"
+                inputmode="decimal"
+              />
+            </label>
+          </div>
+
+          <p class="field-hint">
+            这些只是本次通行证的异常保险丝，客厅里随时可以追加。
+          </p>
+        </details>
+
+        <button
+          class="primary-action pass-submit"
+          id="issuePassButton"
+          type="submit"
+        >
+          签发通行证
+        </button>
+      </form>
     </section>
 
+    <section
+      class="living-panel budget-panel"
+      id="budgetPanel"
+      aria-labelledby="budgetTitle"
+      hidden
+    >
+      <div class="panel-heading-row compact-heading">
+        <div>
+          <p class="panel-eyebrow">ADJUST PASS</p>
+          <h2 id="budgetTitle">追加时间与预算</h2>
+        </div>
+      </div>
 
-    <!-- 活动时间线 -->
+      <form class="budget-form" id="budgetForm">
+        <div class="form-grid">
+          <label class="field-block">
+            <span>追加真正活动时间</span>
+            <select id="addActiveMinutes">
+              <option value="0">不追加</option>
+              <option value="30">加 30 分钟</option>
+              <option value="60">加 1 小时</option>
+              <option value="120">加 2 小时</option>
+              <option value="240">加 4 小时</option>
+            </select>
+          </label>
+
+          <label class="field-block">
+            <span>新的费用保险丝</span>
+            <input
+              id="adjustMaxCostUsd"
+              type="number"
+              min="0"
+              step="0.10"
+              inputmode="decimal"
+            />
+          </label>
+
+          <label class="field-block">
+            <span>新的输入 Token 上限</span>
+            <input
+              id="adjustInputBudget"
+              type="number"
+              min="0"
+              step="1000"
+              inputmode="numeric"
+            />
+          </label>
+
+          <label class="field-block">
+            <span>新的输出 Token 上限</span>
+            <input
+              id="adjustOutputBudget"
+              type="number"
+              min="0"
+              step="1000"
+              inputmode="numeric"
+            />
+          </label>
+        </div>
+
+        <label class="field-block field-wide">
+          <span>当前任务或补充说明</span>
+          <textarea
+            id="adjustCurrentTask"
+            rows="2"
+            maxlength="2000"
+          ></textarea>
+        </label>
+
+        <button
+          class="secondary-action budget-submit"
+          id="saveBudgetButton"
+          type="submit"
+        >
+          保存调整
+        </button>
+      </form>
+    </section>
+
     <section
       class="living-panel timeline-panel"
       aria-labelledby="timelineTitle"
     >
       <div class="panel-heading-row">
         <div>
-          <p class="panel-eyebrow">
-            TIMELINE
-          </p>
-
-          <h2 id="timelineTitle">
-            活动时间线
-          </h2>
+          <p class="panel-eyebrow">TIMELINE</p>
+          <h2 id="timelineTitle">活动时间线</h2>
         </div>
       </div>
 
@@ -192,90 +406,59 @@
       >
         <li class="timeline-empty">
           <span class="timeline-dot" aria-hidden="true"></span>
-
           <div>
-            <p class="timeline-title">
-              暂无活动记录
-            </p>
-
-            <p class="timeline-text">
-              第一次自由活动开始后，客厅会留下完整脚印
-            </p>
+            <p class="timeline-title">正在读取活动记录</p>
+            <p class="timeline-text">稍等狐狸把脚印搬过来。</p>
           </div>
         </li>
       </ol>
     </section>
 
-
-    <!-- 预算与调用记录 -->
     <section
       class="living-panel usage-panel"
       aria-labelledby="usageTitle"
     >
       <div class="panel-heading-row">
         <div>
-          <p class="panel-eyebrow">
-            USAGE
-          </p>
-
-          <h2 id="usageTitle">
-            本次活动用量
-          </h2>
+          <p class="panel-eyebrow">USAGE</p>
+          <h2 id="usageTitle">本次活动用量</h2>
         </div>
       </div>
 
       <dl class="usage-grid">
         <div class="usage-item">
           <dt>模型调用</dt>
-
-          <dd id="modelCallUsage">
-            0 / 0
-          </dd>
+          <dd id="modelCallUsage">0 / —</dd>
         </div>
 
         <div class="usage-item">
           <dt>输入 Token</dt>
-
-          <dd id="inputTokenUsage">
-            0
-          </dd>
+          <dd id="inputTokenUsage">0 / —</dd>
         </div>
 
         <div class="usage-item">
           <dt>输出 Token</dt>
-
-          <dd id="outputTokenUsage">
-            0
-          </dd>
+          <dd id="outputTokenUsage">0 / —</dd>
         </div>
 
         <div class="usage-item">
           <dt>预计费用</dt>
-
-          <dd id="estimatedCost">
-            $0.00
-          </dd>
+          <dd id="estimatedCost">$0.00 / —</dd>
         </div>
       </dl>
 
-      <p class="usage-note">
-        暂无活动时显示为零；真实记录将由后台 Worker 自动写入
+      <p class="usage-note" id="usageNote">
+        数字来自活动进度账本；达到任何保险丝都会保存现场并暂停。
       </p>
     </section>
 
-
     <footer class="room-footer">
-      <span>
-        404 小窝 · 客厅
-      </span>
-
-      <a href="home.html">
-        回到总览
-      </a>
+      <span>404 小窝 · 客厅</span>
+      <a href="home.html">回到总览</a>
     </footer>
-
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
   <script src="js/living-room.js"></script>
 </body>
 </html>
