@@ -557,6 +557,32 @@ function buildModelMessage({
 }
 
 
+async function resetLegacyResponseChain() {
+  const response = await fetch(
+    "/light-on",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json"
+      },
+      body: JSON.stringify({
+        reset: true
+      })
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || result?.ok === false) {
+    throw new Error(
+      result?.message ||
+      "无法清理旧开灯会话链。"
+    );
+  }
+}
+
+
 async function insertMessage({
   role,
   content,
@@ -723,6 +749,14 @@ async function sendMessage(message) {
     });
 
     messages.push(userRow);
+
+    /*
+      新链开始或 40 轮保险丝触发时，先清掉旧 server.js
+      进程内存中的 lastResponseId，避免它偷偷接回原始开灯会话。
+    */
+    if (!chainState.canContinue) {
+      await resetLegacyResponseChain();
+    }
 
     const payload = {
       message: modelMessage,
