@@ -112,6 +112,15 @@ const createOrchestrationHandler =
       "home_orchestration_api_unavailable"
   });
 
+const createInteractionGuardHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/interaction-guard-api.mjs",
+    label: "Interaction Guard",
+    fallbackError:
+      "interaction_guard_api_unavailable"
+  });
+
 const createLivingRoomHandler =
   createLazyRouteLoader({
     modulePath:
@@ -156,7 +165,7 @@ capturedApp.patch(
 
 capturedApp.post(
   "/api/home-orchestration/interaction/start",
-  createOrchestrationHandler(
+  createInteractionGuardHandler(
     "startInteractionBridge"
   )
 );
