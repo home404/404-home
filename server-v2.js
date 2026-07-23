@@ -121,6 +121,15 @@ const createInteractionGuardHandler =
       "interaction_guard_api_unavailable"
   });
 
+const createActivityClockHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/activity-clock-api.mjs",
+    label: "Activity Clock",
+    fallbackError:
+      "activity_clock_api_unavailable"
+  });
+
 const createLivingRoomHandler =
   createLazyRouteLoader({
     modulePath:
@@ -172,8 +181,8 @@ capturedApp.post(
 
 capturedApp.post(
   "/api/home-orchestration/interaction/end",
-  createOrchestrationHandler(
-    "endInteractionBridge"
+  createActivityClockHandler(
+    "endInteraction"
   )
 );
 
@@ -186,7 +195,7 @@ capturedApp.post(
 
 capturedApp.post(
   "/api/home-orchestration/free-activity/resume",
-  createOrchestrationHandler(
+  createActivityClockHandler(
     "resumeFreeActivity"
   )
 );
@@ -254,5 +263,5 @@ capturedApp.post(
 
 
 console.log(
-  "🧠 全屋调度器、客厅、卧室小纸条与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
+  "🧠 全屋调度器、实际活动时钟、客厅、卧室小纸条与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
 );
