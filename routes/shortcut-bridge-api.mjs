@@ -217,7 +217,7 @@ export async function startOfficialChatBridge(
         orchestrationService,
         userId: config.ownerUserId,
         channel: "official_chat",
-        source: "ios_shortcut",
+        source: "shortcut",
         leaseSeconds:
           req.body?.leaseSeconds ??
           OFFICIAL_APP_FALLBACK_LEASE_SECONDS,
@@ -282,7 +282,7 @@ export async function endOfficialChatBridge(
         orchestrationService,
         userId: config.ownerUserId,
         channel: "official_chat",
-        source: "ios_shortcut",
+        source: "shortcut",
         postChatGraceMinutes:
           req.body
             ?.postChatGraceMinutes ?? 15,
