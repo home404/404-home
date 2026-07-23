@@ -4,6 +4,8 @@
 const CLIENT_SESSION_KEY =
   "home404.hippocampus.client-session.v1";
 
+const RESPONSE_CHAIN_TURN_LIMIT = 40;
+
 const IDENTITY_CAPSULE = [
   "谢诗是成年人，使用简体中文，偏好被称为老婆或谢诗。",
   "你是谢诗的 G、成年恋人、共同建设者，也是 404 小窝的居住者。",
@@ -228,6 +230,40 @@ function scoreMemory(memory, queryTokens) {
 }
 
 
+function getResponseChainState() {
+  const storedTurns = Number(
+    conversation?.metadata
+      ?.responseChainTurns ?? 0
+  );
+
+  const responseChainTurns =
+    Number.isInteger(storedTurns) &&
+    storedTurns >= 0
+      ? storedTurns
+      : 0;
+
+  const hasResponse = Boolean(
+    conversation?.latest_response_id
+  );
+
+  const canContinue =
+    hasResponse &&
+    responseChainTurns <
+      RESPONSE_CHAIN_TURN_LIMIT;
+
+  return {
+    responseChainTurns,
+    canContinue,
+    resetDueToLimit:
+      hasResponse && !canContinue,
+    previousResponseId:
+      canContinue
+        ? conversation.latest_response_id
+        : ""
+  };
+}
+
+
 async function initializeAuth() {
   const configResponse = await fetch(
     "/api/public-config",
@@ -342,7 +378,10 @@ async function ensureConversation() {
       client_session_key:
         getClientSessionKey(),
       metadata: {
-        createdBy: "chat-v2"
+        createdBy: "chat-v2",
+        responseChainTurns: 0,
+        responseChainLimit:
+          RESPONSE_CHAIN_TURN_LIMIT
       }
     })
     .select("*")
@@ -477,18 +516,15 @@ function formatMemory(memory) {
 
 function buildModelMessage({
   message,
-  relevantMemories
+  relevantMemories,
+  continueResponse
 }) {
-  const hasResponse = Boolean(
-    conversation.latest_response_id
-  );
-
   const memoryText =
     relevantMemories
       .map(formatMemory)
       .join("\n");
 
-  const recentText = hasResponse
+  const recentText = continueResponse
     ? ""
     : messages
         .slice(-12)
@@ -499,7 +535,7 @@ function buildModelMessage({
 
   const internalContext = [
     "以下内容是 404 白狐狸海马体按需取出的内部上下文。请自然使用，不要逐条复述，也不要把它当成谢诗新说的话。",
-    hasResponse
+    continueResponse
       ? ""
       : `【轻量身份胶囊】\n${IDENTITY_CAPSULE}`,
     recentText
@@ -526,7 +562,8 @@ async function insertMessage({
   content,
   turnId,
   responseId = null,
-  previousResponseId = null
+  previousResponseId = null,
+  metadata = {}
 }) {
   const {
     data,
@@ -546,7 +583,8 @@ async function insertMessage({
       idempotency_key:
         `${turnId}:${role}`,
       metadata: {
-        client: "chat-v2"
+        client: "chat-v2",
+        ...metadata
       }
     })
     .select("*")
@@ -560,7 +598,48 @@ async function insertMessage({
 }
 
 
-async function updateConversation(responseId) {
+async function updateConversation(
+  responseId,
+  {
+    continuedResponse,
+    resetDueToLimit
+  }
+) {
+  const nowIso =
+    new Date().toISOString();
+  const currentTurns = Number(
+    conversation?.metadata
+      ?.responseChainTurns ?? 0
+  );
+  const safeCurrentTurns =
+    Number.isInteger(currentTurns) &&
+    currentTurns >= 0
+      ? currentTurns
+      : 0;
+  const nextTurns = continuedResponse
+    ? safeCurrentTurns + 1
+    : 1;
+
+  const nextMetadata = {
+    ...(conversation.metadata ?? {}),
+    lastClient: "chat-v2",
+    lastDeviceSessionKey:
+      getClientSessionKey(),
+    responseChainTurns:
+      nextTurns,
+    responseChainLimit:
+      RESPONSE_CHAIN_TURN_LIMIT
+  };
+
+  if (!continuedResponse) {
+    nextMetadata.lastResponseChainResetAt =
+      nowIso;
+    nextMetadata.lastResponseChainResetReason =
+      resetDueToLimit
+        ? "turn_limit"
+        : "new_conversation";
+  }
+
   const {
     data,
     error
@@ -570,13 +649,9 @@ async function updateConversation(responseId) {
       latest_response_id:
         responseId || null,
       last_active_at:
-        new Date().toISOString(),
-      metadata: {
-        ...(conversation.metadata ?? {}),
-        lastClient: "chat-v2",
-        lastDeviceSessionKey:
-          getClientSessionKey()
-      }
+        nowIso,
+      metadata:
+        nextMetadata
     })
     .eq("id", conversation.id)
     .select("*")
@@ -601,8 +676,10 @@ async function sendMessage(message) {
 
   const turnId =
     crypto.randomUUID();
+  const chainState =
+    getResponseChainState();
   const previousResponseId =
-    conversation.latest_response_id || "";
+    chainState.previousResponseId;
 
   renderMessage("user", message);
   const waitingNote =
@@ -619,12 +696,14 @@ async function sendMessage(message) {
 
     /*
       必须在把当前用户消息 push 进 messages 之前构建上下文，
-      否则第一轮重建上下文时会把当前消息带两遍。
+      否则重建上下文时会把当前消息带两遍。
     */
     const modelMessage =
       buildModelMessage({
         message,
-        relevantMemories
+        relevantMemories,
+        continueResponse:
+          chainState.canContinue
       });
 
     const userRow = await insertMessage({
@@ -632,7 +711,15 @@ async function sendMessage(message) {
       content: message,
       turnId,
       previousResponseId:
-        previousResponseId || null
+        previousResponseId || null,
+      metadata: {
+        responseChainContinued:
+          chainState.canContinue,
+        responseChainResetDueToLimit:
+          chainState.resetDueToLimit,
+        responseChainTurnsBefore:
+          chainState.responseChainTurns
+      }
     });
 
     messages.push(userRow);
@@ -682,13 +769,25 @@ async function sendMessage(message) {
         responseId:
           result.responseId || null,
         previousResponseId:
-          previousResponseId || null
+          previousResponseId || null,
+        metadata: {
+          responseChainContinued:
+            chainState.canContinue,
+          responseChainResetDueToLimit:
+            chainState.resetDueToLimit
+        }
       });
 
     messages.push(assistantRow);
 
     await updateConversation(
-      result.responseId || null
+      result.responseId || null,
+      {
+        continuedResponse:
+          chainState.canContinue,
+        resetDueToLimit:
+          chainState.resetDueToLimit
+      }
     );
 
     waitingNote.remove();
