@@ -9,6 +9,10 @@ import {
   HomeOrchestrationError
 } from "../services/home-orchestration-service.mjs";
 
+import {
+  startInteractionPreservingActivity
+} from "../services/interaction-guard-service.mjs";
+
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -195,7 +199,8 @@ export async function startOfficialChatBridge(
 
     const service = createService(config);
     const result =
-      await service.startInteraction({
+      await startInteractionPreservingActivity({
+        orchestrationService: service,
         userId: config.ownerUserId,
         channel: "official_chat",
         source: "ios_shortcut",
@@ -226,6 +231,8 @@ export async function startOfficialChatBridge(
         result.pausedActivity
           ?.progress?.state ===
           "paused_by_chat",
+      preservedActivityState:
+        result.preservedActivityState,
       modelCalled: false
     });
   } catch (error) {
