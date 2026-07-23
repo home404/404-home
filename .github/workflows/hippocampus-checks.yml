@@ -31,6 +31,7 @@ jobs:
 
       - name: Check service and worker syntax
         run: |
+          node --check server-v2.js
           node --check services/heart-policy-service.mjs
           node --check services/hippocampus-service.mjs
           node --check services/home-orchestration-service.mjs
