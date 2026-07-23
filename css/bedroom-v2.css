@@ -1,0 +1,82 @@
+.handoff-panel {
+  width: min(820px, calc(100% - 24px));
+  margin: 14px auto 0;
+  padding: 15px;
+  border: 1px solid rgba(138, 90, 43, 0.2);
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 252, 246, 0.98),
+      rgba(244, 232, 214, 0.94)
+    );
+  box-shadow: 0 12px 30px rgba(92, 62, 34, 0.08);
+}
+
+.handoff-panel[hidden] {
+  display: none;
+}
+
+.handoff-copy strong {
+  display: block;
+  font-size: 14px;
+}
+
+.handoff-copy p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.handoff-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.handoff-actions button {
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(255, 250, 243, 0.82);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 680;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.handoff-actions button.is-primary {
+  color: #fffaf3;
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.handoff-actions button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+@media (max-width: 520px) {
+  .handoff-panel {
+    width: calc(100% - 20px);
+    margin-top: 10px;
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  .handoff-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .handoff-actions button {
+    min-width: 0;
+    padding: 0 7px;
+    font-size: 11px;
+  }
+}

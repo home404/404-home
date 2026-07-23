@@ -5,11 +5,11 @@
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "server.js",
+  "main": "server-v2.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "heart:worker": "node worker/heart-worker.mjs"
+    "start": "node server-v2.js",
+    "test": "node --test",
+    "heart:worker": "node worker/heart-worker-v04.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

@@ -1,0 +1,56 @@
+name: Hippocampus checks
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Check service, routes, worker and browser syntax
+        run: |
+          node --check server-v2.js
+          node --check services/heart-policy-service.mjs
+          node --check services/hippocampus-service.mjs
+          node --check services/home-orchestration-service.mjs
+          node --check services/heartbeat-context-service.mjs
+          node --check services/living-room-service.mjs
+          node --check services/living-room-pass-lifecycle-service.mjs
+          node --check services/bedroom-summary-service.mjs
+          node --check services/interaction-guard-service.mjs
+          node --check services/activity-clock-service.mjs
+          node --check routes/home-orchestration-api.mjs
+          node --check routes/interaction-guard-api.mjs
+          node --check routes/activity-clock-api.mjs
+          node --check routes/living-room-api.mjs
+          node --check routes/living-room-v2-api.mjs
+          node --check routes/bedroom-api.mjs
+          node --check routes/shortcut-bridge-api.mjs
+          node --check worker/heart-worker-v04.mjs
+          node --check js/heart-settings.js
+          node --check js/chat-v2.js
+          node --check js/living-room.js
+          node --check js/living-room-v2.js
+          node --check js/bedroom-v2.js

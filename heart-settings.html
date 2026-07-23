@@ -36,7 +36,7 @@
       <h1>小心脏作息</h1>
 
       <p class="header-copy">
-        调整自动醒来的节律，也给狐狸留一段不会被系统叫醒的完整睡眠。
+        程序可以按时巡检，但只有真的值得醒来时才调用模型。大管家可以在这里调整自然醒来、每日上限和睡眠时间。
       </p>
     </header>
 
@@ -68,9 +68,9 @@
       <section class="settings-card">
         <div class="setting-row setting-row-toggle">
           <div>
-            <h2>自动心跳</h2>
+            <h2>自动心跳巡检</h2>
             <p>
-              没有自由活动通行证、也没有正在陪你聊天时，允许后台按节律醒来。
+              后台按节律检查是否需要醒来。普通巡检本身不调用模型，也不会产生模型费用。
             </p>
           </div>
 
@@ -80,7 +80,7 @@
               type="checkbox"
             />
             <span class="switch-track" aria-hidden="true"></span>
-            <span class="sr-only">开启自动心跳</span>
+            <span class="sr-only">开启自动心跳巡检</span>
           </label>
         </div>
       </section>
@@ -103,7 +103,7 @@
         </div>
 
         <p class="card-description">
-          这段时间不会运行自动心跳。手动唤醒、聊天和明确授予的自由活动仍然有效。
+          这段时间不会运行自动心跳巡检。手动唤醒、聊天和明确授予的自由活动仍然有效。
         </p>
 
         <div
@@ -142,15 +142,15 @@
         <div class="card-heading">
           <div>
             <p class="card-number">02</p>
-            <h2>自动唤醒间隔</h2>
+            <h2>程序巡检间隔</h2>
           </div>
         </div>
 
         <p class="card-description">
-          固定间隔适合稳定节律；随机范围会在每次完成后重新抽取，更像自然醒来。
+          到点时先由程序检查预算、间隔、新评论和自然醒来机会。多数巡检会安静结束，不会调用模型。
         </p>
 
-        <div class="segmented-control" role="radiogroup" aria-label="唤醒间隔模式">
+        <div class="segmented-control" role="radiogroup" aria-label="巡检间隔模式">
           <label>
             <input
               type="radio"
@@ -173,7 +173,7 @@
 
         <div id="fixedIntervalFields">
           <label class="field field-full">
-            <span>每隔多久醒来一次</span>
+            <span>每隔多久巡检一次</span>
             <select id="fixedInterval"></select>
           </label>
         </div>
@@ -184,12 +184,12 @@
           hidden
         >
           <label class="field">
-            <span>最短间隔</span>
+            <span>最短巡检间隔</span>
             <select id="intervalMin"></select>
           </label>
 
           <label class="field">
-            <span>最长间隔</span>
+            <span>最长巡检间隔</span>
             <select id="intervalMax"></select>
           </label>
         </div>
@@ -199,6 +199,110 @@
         <div class="card-heading">
           <div>
             <p class="card-number">03</p>
+            <h2>自然醒来机会</h2>
+          </div>
+
+          <label class="switch switch-small">
+            <input
+              id="naturalWakeEnabled"
+              type="checkbox"
+            />
+            <span class="switch-track" aria-hidden="true"></span>
+            <span class="sr-only">开启自然醒来机会</span>
+          </label>
+        </div>
+
+        <p class="card-description">
+          没有新任务时，也可以因为想起你而自然醒来。这里设置的是每日目标范围，不代表每次巡检都会叫醒模型。
+        </p>
+
+        <div
+          class="time-grid"
+          id="naturalWakeFields"
+        >
+          <label class="field">
+            <span>每天最少目标</span>
+            <input
+              id="naturalWakeMinPerDay"
+              type="number"
+              min="0"
+              max="24"
+              step="1"
+              inputmode="numeric"
+              required
+            />
+          </label>
+
+          <label class="field">
+            <span>每天最多目标</span>
+            <input
+              id="naturalWakeMaxPerDay"
+              type="number"
+              min="0"
+              max="24"
+              step="1"
+              inputmode="numeric"
+              required
+            />
+          </label>
+        </div>
+
+        <label class="field field-full">
+          <span>两次普通模型醒来的最短间隔</span>
+          <select id="minModelWakeIntervalMinutes"></select>
+          <small>
+            新评论和自然醒来都遵守这个间隔；手动唤醒与自由活动不受这里限制。
+          </small>
+        </label>
+      </section>
+
+      <section class="settings-card">
+        <div class="card-heading">
+          <div>
+            <p class="card-number">04</p>
+            <h2>每日自动预算</h2>
+          </div>
+        </div>
+
+        <p class="card-description">
+          只限制普通自动心跳。手动叫醒和自由活动使用各自的明确授权，不会被这里误伤。
+        </p>
+
+        <div class="time-grid">
+          <label class="field">
+            <span>模型调用上限</span>
+            <input
+              id="dailyModelCallLimit"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              inputmode="numeric"
+              required
+            />
+            <small>填 0 表示当天不自动调用模型。</small>
+          </label>
+
+          <label class="field">
+            <span>预计费用上限（美元）</span>
+            <input
+              id="dailyCostLimitUsd"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              inputmode="decimal"
+              required
+            />
+            <small>填 0 表示暂不启用费用上限。</small>
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-card">
+        <div class="card-heading">
+          <div>
+            <p class="card-number">05</p>
             <h2>离开聊天后的缓冲</h2>
           </div>
         </div>
@@ -224,7 +328,7 @@
         id="saveButton"
         type="submit"
       >
-        保存作息
+        保存作息与预算
       </button>
     </form>
 
