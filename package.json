@@ -8,7 +8,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
     "heart:worker": "node worker/heart-worker-v02.mjs"
   },
   "dependencies": {
