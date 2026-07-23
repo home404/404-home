@@ -4,9 +4,9 @@ require("dotenv").config();
 /*
   404 主服务 v2 启动器
 
-  旧 server.js 目前仍承担客厅 / 卧室聊天和既有 API。
+  旧 server.js 目前仍承担卧室聊天和既有 API。
   为了不在一次施工里重写整台老机器，这里先捕获它创建的
-  Express app，再追加全屋调度器路由。
+  Express app，再追加全屋调度器与手机连接桥路由。
 
   express.static 会在找不到文件时继续 next，
   因此这些后挂载的 /api 路由仍可正常工作。
@@ -45,61 +45,81 @@ if (!capturedApp) {
 }
 
 
-let orchestrationModulePromise = null;
+function createLazyRouteLoader({
+  modulePath,
+  label,
+  fallbackError
+}) {
+  let modulePromise = null;
 
+  function loadModule() {
+    if (!modulePromise) {
+      modulePromise = import(modulePath);
+    }
 
-function loadOrchestrationModule() {
-  if (!orchestrationModulePromise) {
-    orchestrationModulePromise = import(
-      "./routes/home-orchestration-api.mjs"
-    );
+    return modulePromise;
   }
 
-  return orchestrationModulePromise;
-}
+  return function createHandler(
+    exportName
+  ) {
+    return async (
+      req,
+      res,
+      next
+    ) => {
+      try {
+        const routeModule =
+          await loadModule();
+        const handler =
+          routeModule[exportName];
 
+        if (
+          typeof handler !== "function"
+        ) {
+          throw new Error(
+            `${label} handler not found: ${exportName}`
+          );
+        }
 
-function createOrchestrationHandler(
-  exportName
-) {
-  return async (
-    req,
-    res,
-    next
-  ) => {
-    try {
-      const routeModule =
-        await loadOrchestrationModule();
-      const handler =
-        routeModule[exportName];
-
-      if (
-        typeof handler !== "function"
-      ) {
-        throw new Error(
-          `Home orchestration handler not found: ${exportName}`
+        await handler(req, res);
+      } catch (error) {
+        console.error(
+          `Load ${label} API failed:`,
+          error
         );
+
+        if (!res.headersSent) {
+          return res.status(500).json({
+            ok: false,
+            error: fallbackError
+          });
+        }
+
+        return next(error);
       }
-
-      await handler(req, res);
-    } catch (error) {
-      console.error(
-        "Load Home Orchestration API failed:",
-        error
-      );
-
-      if (!res.headersSent) {
-        return res.status(500).json({
-          ok: false,
-          error:
-            "home_orchestration_api_unavailable"
-        });
-      }
-
-      return next(error);
-    }
+    };
   };
 }
+
+
+const createOrchestrationHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/home-orchestration-api.mjs",
+    label: "Home Orchestration",
+    fallbackError:
+      "home_orchestration_api_unavailable"
+  });
+
+const createShortcutBridgeHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/shortcut-bridge-api.mjs",
+    label: "Shortcut Bridge",
+    fallbackError:
+      "shortcut_bridge_api_unavailable"
+  });
 
 
 capturedApp.get(
@@ -151,6 +171,27 @@ capturedApp.patch(
   )
 );
 
+
+/*
+  iPhone 快捷指令只调用这两条极轻量接口。
+  它们只更新 Supabase 状态，不调用 OpenAI。
+*/
+
+capturedApp.post(
+  "/api/bridge/official/start",
+  createShortcutBridgeHandler(
+    "startOfficialChatBridge"
+  )
+);
+
+capturedApp.post(
+  "/api/bridge/official/end",
+  createShortcutBridgeHandler(
+    "endOfficialChatBridge"
+  )
+);
+
+
 console.log(
-  "🧠 全屋调度器 API 已挂载；自动心跳发布总闸默认关闭。"
+  "🧠 全屋调度器与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
 );
