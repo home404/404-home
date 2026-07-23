@@ -6,7 +6,7 @@ require("dotenv").config();
 
   旧 server.js 目前仍承担卧室聊天和既有 API。
   为了不在一次施工里重写整台老机器，这里先捕获它创建的
-  Express app，再追加全屋调度器、客厅控制台与手机连接桥路由。
+  Express app，再追加全屋调度器、客厅控制台、卧室小纸条与手机连接桥路由。
 
   express.static 会在找不到文件时继续 next，
   因此这些后挂载的 /api 路由仍可正常工作。
@@ -121,6 +121,15 @@ const createLivingRoomHandler =
       "living_room_api_unavailable"
   });
 
+const createBedroomHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/bedroom-api.mjs",
+    label: "Bedroom",
+    fallbackError:
+      "bedroom_api_unavailable"
+  });
+
 const createShortcutBridgeHandler =
   createLazyRouteLoader({
     modulePath:
@@ -205,6 +214,16 @@ capturedApp.patch(
 );
 
 
+/* 卧室在 40 轮时生成小纸条，60 轮时由前端带着小纸条换链。 */
+
+capturedApp.post(
+  "/api/bedroom/segment-summary",
+  createBedroomHandler(
+    "createSegmentSummary"
+  )
+);
+
+
 /*
   iPhone 快捷指令只调用这两条极轻量接口。
   它们只更新 Supabase 状态，不调用 OpenAI。
@@ -226,5 +245,5 @@ capturedApp.post(
 
 
 console.log(
-  "🧠 全屋调度器、客厅控制台与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
+  "🧠 全屋调度器、客厅、卧室小纸条与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
 );
