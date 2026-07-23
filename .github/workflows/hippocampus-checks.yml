@@ -1,0 +1,38 @@
+name: Hippocampus checks
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Check service and worker syntax
+        run: |
+          node --check services/heart-policy-service.mjs
+          node --check services/hippocampus-service.mjs
+          node --check worker/heart-worker-v03.mjs
+          node --check js/heart-settings.js
+          node --check js/chat-v2.js
