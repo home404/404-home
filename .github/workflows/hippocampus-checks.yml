@@ -29,15 +29,18 @@ jobs:
       - name: Run unit tests
         run: npm test
 
-      - name: Check service and worker syntax
+      - name: Check service, routes, worker and browser syntax
         run: |
           node --check server-v2.js
           node --check services/heart-policy-service.mjs
           node --check services/hippocampus-service.mjs
           node --check services/home-orchestration-service.mjs
           node --check services/heartbeat-context-service.mjs
+          node --check services/living-room-service.mjs
           node --check routes/home-orchestration-api.mjs
+          node --check routes/living-room-api.mjs
           node --check routes/shortcut-bridge-api.mjs
           node --check worker/heart-worker-v04.mjs
           node --check js/heart-settings.js
           node --check js/chat-v2.js
+          node --check js/living-room.js
