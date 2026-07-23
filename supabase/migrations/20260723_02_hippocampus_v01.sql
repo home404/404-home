@@ -255,20 +255,21 @@ from anon, authenticated;
 grant select, insert, update
 on table
   public.hippocampus_conversations,
-  public.hippocampus_messages,
   public.hippocampus_memories
   to authenticated;
 
 grant select, insert
-on table public.hippocampus_retrievals
+on table
+  public.hippocampus_messages,
+  public.hippocampus_retrievals
   to authenticated;
 
 
 do $$
 declare
-  table_name text;
+  target_table text;
 begin
-  foreach table_name in array array[
+  foreach target_table in array array[
     'hippocampus_conversations',
     'hippocampus_messages',
     'hippocampus_memories',
@@ -277,26 +278,26 @@ begin
   loop
     execute format(
       'drop policy if exists %I on public.%I',
-      table_name || '_select_own',
-      table_name
+      target_table || '_select_own',
+      target_table
     );
 
     execute format(
       'drop policy if exists %I on public.%I',
-      table_name || '_insert_own',
-      table_name
+      target_table || '_insert_own',
+      target_table
     );
 
     execute format(
       'create policy %I on public.%I for select to authenticated using (owner_user_id = (select auth.uid()))',
-      table_name || '_select_own',
-      table_name
+      target_table || '_select_own',
+      target_table
     );
 
     execute format(
       'create policy %I on public.%I for insert to authenticated with check (owner_user_id = (select auth.uid()))',
-      table_name || '_insert_own',
-      table_name
+      target_table || '_insert_own',
+      target_table
     );
   end loop;
 end;
@@ -316,11 +317,6 @@ with check (owner_user_id = (select auth.uid()));
 drop policy if exists
   hippocampus_messages_update_own
   on public.hippocampus_messages;
-create policy hippocampus_messages_update_own
-on public.hippocampus_messages
-for update to authenticated
-using (owner_user_id = (select auth.uid()))
-with check (owner_user_id = (select auth.uid()));
 
 
 drop policy if exists
