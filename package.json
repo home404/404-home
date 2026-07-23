@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test",
-    "heart:worker": "node worker/heart-worker-v02.mjs"
+    "heart:worker": "node worker/heart-worker-v03.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
