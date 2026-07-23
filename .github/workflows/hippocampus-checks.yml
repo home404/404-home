@@ -39,8 +39,10 @@ jobs:
           node --check services/living-room-service.mjs
           node --check services/bedroom-summary-service.mjs
           node --check services/interaction-guard-service.mjs
+          node --check services/activity-clock-service.mjs
           node --check routes/home-orchestration-api.mjs
           node --check routes/interaction-guard-api.mjs
+          node --check routes/activity-clock-api.mjs
           node --check routes/living-room-api.mjs
           node --check routes/bedroom-api.mjs
           node --check routes/shortcut-bridge-api.mjs
