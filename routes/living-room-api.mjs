@@ -14,6 +14,10 @@ import {
   createLivingRoomService
 } from "../services/living-room-service.mjs";
 
+import {
+  alignPassEndToRemaining
+} from "../services/activity-clock-service.mjs";
+
 
 function normalizeBaseUrl(value) {
   return String(value ?? "")
@@ -150,12 +154,15 @@ async function createRequestContext(
     return null;
   }
 
+  const serviceClient =
+    createServiceClient(config);
+
   return {
     user: authResult.user,
+    serviceClient,
     service:
       createLivingRoomService({
-        serviceClient:
-          createServiceClient(config)
+        serviceClient
       })
   };
 }
@@ -324,6 +331,23 @@ export async function updateLivingRoomPass(
             req.body?.resumePolicy
         });
 
+    const aligned =
+      result.progress?.state === "running"
+        ? await alignPassEndToRemaining({
+            serviceClient:
+              context.serviceClient,
+            userId: context.user.id,
+            pass: result.pass,
+            progress: result.progress,
+            remaining: result.remaining,
+            source:
+              "living_room_budget_update"
+          })
+        : {
+            ...result,
+            aligned: false
+          };
+
     res.set(
       "Cache-Control",
       "no-store"
@@ -331,7 +355,7 @@ export async function updateLivingRoomPass(
 
     return res.json({
       ok: true,
-      ...result
+      ...aligned
     });
   } catch (error) {
     return sendError(res, error);
