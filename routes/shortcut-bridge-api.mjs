@@ -13,6 +13,10 @@ import {
   startInteractionPreservingActivity
 } from "../services/interaction-guard-service.mjs";
 
+import {
+  endInteractionWithClock
+} from "../services/activity-clock-service.mjs";
+
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -122,9 +126,13 @@ function createService(config) {
     }
   );
 
-  return createHomeOrchestrationService({
-    serviceClient
-  });
+  return {
+    serviceClient,
+    orchestrationService:
+      createHomeOrchestrationService({
+        serviceClient
+      })
+  };
 }
 
 
@@ -197,10 +205,12 @@ export async function startOfficialChatBridge(
       return;
     }
 
-    const service = createService(config);
+    const {
+      orchestrationService
+    } = createService(config);
     const result =
       await startInteractionPreservingActivity({
-        orchestrationService: service,
+        orchestrationService,
         userId: config.ownerUserId,
         channel: "official_chat",
         source: "ios_shortcut",
@@ -255,9 +265,14 @@ export async function endOfficialChatBridge(
       return;
     }
 
-    const service = createService(config);
+    const {
+      serviceClient,
+      orchestrationService
+    } = createService(config);
     const result =
-      await service.endInteraction({
+      await endInteractionWithClock({
+        serviceClient,
+        orchestrationService,
         userId: config.ownerUserId,
         channel: "official_chat",
         source: "ios_shortcut",
@@ -286,6 +301,8 @@ export async function endOfficialChatBridge(
       freeActivityResumed:
         result.resumedActivity?.progress
           ?.state === "running",
+      activityClockAligned:
+        result.activityClockAligned,
       modelCalled: false
     });
   } catch (error) {
