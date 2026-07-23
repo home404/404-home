@@ -2,6 +2,50 @@ begin;
 
 
 /* ========================================
+   白狐狸海马体 v0.1 · 所属完整性
+
+   消息引用的会话必须属于同一位屋主。
+   不能只依赖 RLS 或 UUID 难猜来保证这一点。
+======================================== */
+
+create unique index if not exists
+  hippocampus_conversations_id_owner_uidx
+  on public.hippocampus_conversations (
+    id,
+    owner_user_id
+  );
+
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname =
+      'hippocampus_messages_conversation_owner_fk'
+  ) then
+    alter table public.hippocampus_messages
+      drop constraint if exists
+        hippocampus_messages_conversation_id_fkey;
+
+    alter table public.hippocampus_messages
+      add constraint
+        hippocampus_messages_conversation_owner_fk
+      foreign key (
+        conversation_id,
+        owner_user_id
+      )
+      references public.hippocampus_conversations (
+        id,
+        owner_user_id
+      )
+      on delete cascade;
+  end if;
+end;
+$$;
+
+
+/* ========================================
    白狐狸海马体 v0.1 · 旧资料回填
 
    - 书房正文与摘要搬入可追溯记忆卡
