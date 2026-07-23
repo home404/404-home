@@ -374,7 +374,7 @@ async function loadMessages() {
       conversation.id
     )
     .order("occurred_at", {
-      ascending: true
+      ascending: false
     })
     .limit(300);
 
@@ -382,7 +382,9 @@ async function loadMessages() {
     throw error;
   }
 
-  messages = data ?? [];
+  messages = [
+    ...(data ?? [])
+  ].reverse();
   elements.chatLog.textContent = "";
 
   if (!messages.length) {
@@ -606,11 +608,24 @@ async function sendMessage(message) {
   const waitingNote =
     renderNote("我正在想……");
 
+  let recoveredReply = "";
+  let recoveredNotice = "";
+
   try {
     const relevantMemories =
       await retrieveRelevantMemories(
         message
       );
+
+    /*
+      必须在把当前用户消息 push 进 messages 之前构建上下文，
+      否则第一轮重建上下文时会把当前消息带两遍。
+    */
+    const modelMessage =
+      buildModelMessage({
+        message,
+        relevantMemories
+      });
 
     const userRow = await insertMessage({
       role: "user",
@@ -623,10 +638,7 @@ async function sendMessage(message) {
     messages.push(userRow);
 
     const payload = {
-      message: buildModelMessage({
-        message,
-        relevantMemories
-      }),
+      message: modelMessage,
       previousResponseId,
       clientSessionDate:
         getTodayKey(),
@@ -659,16 +671,8 @@ async function sendMessage(message) {
       );
     }
 
-    waitingNote.remove();
-
-    if (result.notice) {
-      renderNote(result.notice);
-    }
-
-    renderMessage(
-      "assistant",
-      result.reply
-    );
+    recoveredReply = result.reply;
+    recoveredNotice = result.notice || "";
 
     const assistantRow =
       await insertMessage({
@@ -687,6 +691,17 @@ async function sendMessage(message) {
       result.responseId || null
     );
 
+    waitingNote.remove();
+
+    if (recoveredNotice) {
+      renderNote(recoveredNotice);
+    }
+
+    renderMessage(
+      "assistant",
+      recoveredReply
+    );
+
     setMemoryState(
       "海马体在线",
       "ready"
@@ -698,10 +713,25 @@ async function sendMessage(message) {
     );
 
     waitingNote.remove();
-    renderNote(
-      error?.message ||
-      "客厅正在维修，刚才这句话已经保存在海马体里。"
-    );
+
+    if (recoveredReply) {
+      if (recoveredNotice) {
+        renderNote(recoveredNotice);
+      }
+
+      renderMessage(
+        "assistant",
+        recoveredReply
+      );
+      renderNote(
+        "这条回复已经回来，但海马体保存或接续位置更新失败；先别刷新页面。"
+      );
+    } else {
+      renderNote(
+        error?.message ||
+        "客厅正在维修，刚才这句话已经保存在海马体里。"
+      );
+    }
 
     setMemoryState(
       "需要检查",
