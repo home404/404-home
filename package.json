@@ -5,9 +5,9 @@
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "server.js",
+  "main": "server-v2.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node server-v2.js",
     "test": "node --test",
     "heart:worker": "node worker/heart-worker-v03.mjs"
   },
