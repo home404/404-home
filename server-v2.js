@@ -139,6 +139,15 @@ const createLivingRoomHandler =
       "living_room_api_unavailable"
   });
 
+const createLivingRoomV2Handler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/living-room-v2-api.mjs",
+    label: "Living Room v2",
+    fallbackError:
+      "living_room_v2_api_unavailable"
+  });
+
 const createBedroomHandler =
   createLazyRouteLoader({
     modulePath:
@@ -231,6 +240,22 @@ capturedApp.patch(
   )
 );
 
+/* 客厅 v2：安全调预算、统一活动时钟、完成或取消通行证。 */
+
+capturedApp.patch(
+  "/api/living-room-v2/free-activity/:activityPassId",
+  createLivingRoomV2Handler(
+    "updateLivingRoomPassSafely"
+  )
+);
+
+capturedApp.post(
+  "/api/living-room-v2/free-activity/:activityPassId/finish",
+  createLivingRoomV2Handler(
+    "finishLivingRoomPass"
+  )
+);
+
 
 /* 卧室在 40 轮时生成小纸条，60 轮时由前端带着小纸条换链。 */
 
@@ -263,5 +288,5 @@ capturedApp.post(
 
 
 console.log(
-  "🧠 全屋调度器、实际活动时钟、客厅、卧室小纸条与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
+  "🧠 全屋调度器、实际活动时钟、客厅 v2、卧室小纸条与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
 );
