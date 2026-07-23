@@ -18,6 +18,10 @@ import {
 } from "../services/activity-clock-service.mjs";
 
 
+const OFFICIAL_APP_FALLBACK_LEASE_SECONDS =
+  2 * 60 * 60;
+
+
 function normalizeText(value) {
   return String(value ?? "")
     .trim();
@@ -215,7 +219,8 @@ export async function startOfficialChatBridge(
         channel: "official_chat",
         source: "ios_shortcut",
         leaseSeconds:
-          req.body?.leaseSeconds ?? null,
+          req.body?.leaseSeconds ??
+          OFFICIAL_APP_FALLBACK_LEASE_SECONDS,
         contextSummary:
           req.body?.contextSummary ?? null,
         metadata: {
@@ -223,7 +228,9 @@ export async function startOfficialChatBridge(
             "chatgpt_app_opened",
           device:
             req.body?.device ??
-            "iphone"
+            "iphone",
+          leaseMode:
+            "app_open_close_with_fallback"
         }
       });
 
