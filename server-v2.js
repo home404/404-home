@@ -6,7 +6,7 @@ require("dotenv").config();
 
   旧 server.js 目前仍承担卧室聊天和既有 API。
   为了不在一次施工里重写整台老机器，这里先捕获它创建的
-  Express app，再追加全屋调度器与手机连接桥路由。
+  Express app，再追加全屋调度器、客厅控制台与手机连接桥路由。
 
   express.static 会在找不到文件时继续 next，
   因此这些后挂载的 /api 路由仍可正常工作。
@@ -112,6 +112,15 @@ const createOrchestrationHandler =
       "home_orchestration_api_unavailable"
   });
 
+const createLivingRoomHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/living-room-api.mjs",
+    label: "Living Room",
+    fallbackError:
+      "living_room_api_unavailable"
+  });
+
 const createShortcutBridgeHandler =
   createLazyRouteLoader({
     modulePath:
@@ -172,6 +181,30 @@ capturedApp.patch(
 );
 
 
+/* 客厅日常入口：签发通行证、看进度和随时加预算。 */
+
+capturedApp.get(
+  "/api/living-room/status",
+  createLivingRoomHandler(
+    "getLivingRoomStatus"
+  )
+);
+
+capturedApp.post(
+  "/api/living-room/free-activity",
+  createLivingRoomHandler(
+    "grantLivingRoomPass"
+  )
+);
+
+capturedApp.patch(
+  "/api/living-room/free-activity/:activityPassId",
+  createLivingRoomHandler(
+    "updateLivingRoomPass"
+  )
+);
+
+
 /*
   iPhone 快捷指令只调用这两条极轻量接口。
   它们只更新 Supabase 状态，不调用 OpenAI。
@@ -193,5 +226,5 @@ capturedApp.post(
 
 
 console.log(
-  "🧠 全屋调度器与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
+  "🧠 全屋调度器、客厅控制台与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
 );
