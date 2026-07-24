@@ -6,8 +6,7 @@ require("dotenv").config();
 
   旧 server.js 目前仍承担卧室聊天和既有 API。
   为了不在一次施工里重写整台老机器，这里先捕获它创建的
-  Express app，再追加全屋调度器、客厅控制台、卧室小纸条与手机连接桥路由。
-
+  Express app，再追加全屋调度器、客厅控制台、卧室消息、文字总账与手机连接桥路由。
   express.static 会在找不到文件时继续 next，
   因此这些后挂载的 /api 路由仍可正常工作。
 */
@@ -156,6 +155,24 @@ const createBedroomHandler =
       "bedroom_api_unavailable"
   });
 
+const createBedroomMessagesHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/bedroom-messages-api.mjs",
+    label: "Bedroom Messages",
+    fallbackError:
+      "bedroom_messages_api_unavailable"
+  });
+
+const createTextLedgerHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/text-ledger-api.mjs",
+    label: "Text Ledger",
+    fallbackError:
+      "text_ledger_api_unavailable"
+  });
+
 const createShortcutBridgeHandler =
   createLazyRouteLoader({
     modulePath:
@@ -274,12 +291,60 @@ capturedApp.post(
 );
 
 
-/* 卧室在 40 轮时生成小纸条，60 轮时由前端带着小纸条换链。 */
+/* 旧卧室聊天链仍保留小纸条 API，方便已有原文继续安全收尾。 */
 
 capturedApp.post(
   "/api/bedroom/segment-summary",
   createBedroomHandler(
     "createSegmentSummary"
+  )
+);
+
+
+/* 新卧室只显示 G 主动发来的独立消息；浏览器实时订阅并用轮询兜底。 */
+
+capturedApp.get(
+  "/api/bedroom/messages",
+  createBedroomMessagesHandler(
+    "listBedroomMessages"
+  )
+);
+
+capturedApp.post(
+  "/api/bedroom/messages/read",
+  createBedroomMessagesHandler(
+    "markBedroomMessagesRead"
+  )
+);
+
+
+/* 手机文字总账：查看正文、归档、取消归档与手动删除。 */
+
+capturedApp.get(
+  "/api/text-ledger/items",
+  createTextLedgerHandler(
+    "listTextItems"
+  )
+);
+
+capturedApp.get(
+  "/api/text-ledger/items/:sourceType/:sourceId",
+  createTextLedgerHandler(
+    "getTextItem"
+  )
+);
+
+capturedApp.patch(
+  "/api/text-ledger/items/:sourceType/:sourceId/archive",
+  createTextLedgerHandler(
+    "patchTextItemArchive"
+  )
+);
+
+capturedApp.delete(
+  "/api/text-ledger/items/:sourceType/:sourceId",
+  createTextLedgerHandler(
+    "deleteTextItem"
   )
 );
 
@@ -328,5 +393,5 @@ capturedApp.post(
 
 
 console.log(
-  "🧠 全屋调度器、网页在家租约、实际活动时钟、客厅 v2、卧室小纸条、书房评论删除与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
+  "🧠 全屋调度器、客厅、卧室消息、文字总账、书房评论删除与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
 );
