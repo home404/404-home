@@ -7,8 +7,8 @@ import {
 } from "../middleware/mcp-auth.mjs";
 
 import {
-  createTextLedgerService
-} from "../services/text-ledger-service.mjs";
+  createTextLedgerCompositeService
+} from "../services/text-ledger-composite-service.mjs";
 
 
 function normalizeBaseUrl(value) {
@@ -140,7 +140,7 @@ async function createRequestContext(
   return {
     user: authResult.user,
     service:
-      createTextLedgerService({
+      createTextLedgerCompositeService({
         serviceClient
       })
   };
