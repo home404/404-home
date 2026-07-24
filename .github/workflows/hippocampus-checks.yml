@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: hippocampus-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -32,7 +36,10 @@ jobs:
       - name: Check service, routes, worker and browser syntax
         run: |
           node --check server-v2.js
+          node --check services/heart-service.mjs
           node --check services/heart-policy-service.mjs
+          node --check services/daily-activity-note-service.mjs
+          node --check services/resident-runtime-service.mjs
           node --check services/hippocampus-service.mjs
           node --check services/home-orchestration-service.mjs
           node --check services/heartbeat-context-service.mjs
@@ -49,8 +56,15 @@ jobs:
           node --check routes/bedroom-api.mjs
           node --check routes/shortcut-bridge-api.mjs
           node --check worker/heart-worker-v04.mjs
+          node --check worker/heart-worker-v05.mjs
+          node --check js/home.js
+          node --check js/resident-home.js
           node --check js/heart-settings.js
+          node --check js/resident-heart-settings.js
+          node --check js/resident-heart-runtime-sync.js
           node --check js/chat-v2.js
           node --check js/living-room.js
           node --check js/living-room-v2.js
           node --check js/bedroom-v2.js
+          node --check js/bedroom-resident-context.js
+          node --check js/bedroom-live.js
