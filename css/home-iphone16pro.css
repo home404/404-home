@@ -1,21 +1,20 @@
 /*
-  404 小窝首页 · iPhone 16 Pro 紧凑版
+  404 小窝首页 · iPhone 16 Pro 紧凑版 v2
 
-  Apple 给出的 iPhone 16 Pro 竖屏逻辑尺寸是 402 × 874 pt。
-  这里以 402px 宽的 Safari 页面为主要验收尺寸，同时保留
-  360–560px 手机宽度下的自然缩放。
+  主验收尺寸：iPhone 16 Pro 竖屏 402 × 874 pt。
+  保留上一版已经验收的三行房卡结构，只重新分配纵向留白，
+  并让透明狐狸直接显示，不再套浅色方块。
 */
 
 @media (max-width: 560px) {
   .home-shell {
     width: 100%;
     padding:
-      max(8px, env(safe-area-inset-top))
+      max(20px, env(safe-area-inset-top))
       10px
-      max(8px, env(safe-area-inset-bottom));
+      max(14px, env(safe-area-inset-bottom));
   }
 
-  /* 顶部状态卡：取消旧版“大展板”比例，整块向上并明显变矮。 */
   .status-panel {
     min-height: 0;
     padding: 16px;
@@ -100,13 +99,12 @@
     font-size: 10px;
   }
 
-  /* 标题只做轻量章节标记，不再占掉半张屏幕。 */
   .rooms-section {
-    margin-top: 16px;
+    margin-top: 26px;
   }
 
   .rooms-heading {
-    margin-bottom: 9px;
+    margin-bottom: 13px;
   }
 
   .rooms-heading p {
@@ -128,15 +126,10 @@
   }
 
   .rooms-grid {
-    gap: 8px;
+    column-gap: 8px;
+    row-gap: 13px;
   }
 
-  /*
-    每张房卡固定三行：
-    1. 图标 + 房间名
-    2. 一行说明
-    3. 居中的开门 / 施工中
-  */
   .room-card {
     display: grid;
     grid-template-columns: 46px minmax(0, 1fr);
@@ -153,15 +146,22 @@
     grid-column: 1;
     grid-row: 1;
     align-self: center;
-    width: 42px;
-    height: 42px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
     aspect-ratio: auto;
-    border-radius: 13px;
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
   }
 
   .room-icon img {
-    width: 88%;
-    height: 88%;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
   }
 
   .room-copy {
@@ -207,10 +207,9 @@
     font-size: 12px;
   }
 
-  /* 页脚也收进首屏，避免被 Safari 底部工具栏盖住。 */
   .home-footer {
     gap: 12px;
-    margin-top: 10px;
+    margin-top: 28px;
     padding: 0 2px;
     font-size: 10px;
     line-height: 18px;
@@ -221,8 +220,11 @@
   }
 }
 
-/* iPhone 16 Pro：402 × 874 pt，以及相近尺寸的手机。 */
 @media (max-width: 420px) and (max-height: 900px) {
+  .home-shell {
+    padding-top: max(20px, env(safe-area-inset-top));
+  }
+
   .status-panel {
     padding: 14px 15px;
   }
@@ -237,19 +239,23 @@
   }
 
   .rooms-section {
-    margin-top: 14px;
+    margin-top: 24px;
   }
 
   .rooms-heading {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
   }
 
   .rooms-heading h2 {
     font-size: 27px;
   }
 
+  .rooms-grid {
+    row-gap: 13px;
+  }
+
   .home-footer {
-    margin-top: 8px;
+    margin-top: 26px;
   }
 }
 
@@ -260,7 +266,8 @@
   }
 
   .rooms-grid {
-    gap: 7px;
+    column-gap: 7px;
+    row-gap: 11px;
   }
 
   .room-card {
@@ -271,8 +278,8 @@
   }
 
   .room-icon {
-    width: 39px;
-    height: 39px;
+    width: 40px;
+    height: 40px;
   }
 
   .room-copy h3 {
