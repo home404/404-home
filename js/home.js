@@ -20,11 +20,15 @@ const ACTIVITY_LABELS = {
   heart_reply_comment: "回复了一条留言"
 };
 
+const HOME_WEB_LEASE_SECONDS = 120;
+const HOME_REFRESH_INTERVAL_MS = 45_000;
+
 let authClient = null;
 let currentSession = null;
 let latestStatus = null;
 let refreshTimer = null;
 let clockTimer = null;
+let refreshInFlight = false;
 
 function redirectToEntrance(next = "home.html") {
   window.location.replace(
@@ -66,9 +70,34 @@ function formatRemaining(targetValue) {
   return `${minutes}分钟`;
 }
 
+function isHomeWebActive(result) {
+  const activeUntilValue =
+    result?.presence?.metadata
+      ?.homeWebActiveUntil ?? null;
+
+  if (!activeUntilValue) {
+    return false;
+  }
+
+  const activeUntil = new Date(
+    activeUntilValue
+  );
+
+  return (
+    !Number.isNaN(activeUntil.getTime()) &&
+    activeUntil.getTime() > Date.now()
+  );
+}
+
 function getStatusText(result) {
   const presence = result?.presence ?? {};
   const status = presence.status ?? "resting";
+  const detail = String(
+    presence.status_detail ?? ""
+  ).trim();
+  const mode = String(
+    presence.metadata?.mode ?? ""
+  ).trim();
 
   if (status === "free_activity") {
     const endsAt =
@@ -85,19 +114,30 @@ function getStatusText(result) {
       : "G 自由活动中";
   }
 
+  if (
+    mode === "interactive_awake" &&
+    detail
+  ) {
+    return detail;
+  }
+
+  if (isHomeWebActive(result)) {
+    return "G 醒着，谢诗在家";
+  }
+
   if (status === "chatting" || status === "living_room") {
-    return "G 醒着，正在陪谢诗";
+    return detail || "G 醒着，正在陪谢诗";
   }
 
   if (["awake", "just_awoke"].includes(status)) {
-    return "G 刚刚醒过";
+    return detail || "G 刚刚醒过";
   }
 
   if (status === "sleeping") {
-    return "G 睡眠中";
+    return detail || "G 睡眠中";
   }
 
-  return "G 在卧室休息";
+  return detail || "G 在卧室休息";
 }
 
 function formatEventTime(value) {
@@ -196,6 +236,22 @@ async function apiRequest(path, options = {}) {
   return body;
 }
 
+async function markHomeWebPresence() {
+  return apiRequest(
+    "/api/heart/home-presence",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        leaseSeconds:
+          HOME_WEB_LEASE_SECONDS
+      })
+    }
+  );
+}
+
 async function loadHomeStatus() {
   try {
     latestStatus = await apiRequest("/api/heart/status");
@@ -206,6 +262,29 @@ async function loadHomeStatus() {
     latestStatus = null;
     renderStatus();
     renderActivities([]);
+  }
+}
+
+async function refreshHome() {
+  if (refreshInFlight) {
+    return;
+  }
+
+  refreshInFlight = true;
+
+  try {
+    try {
+      await markHomeWebPresence();
+    } catch (error) {
+      console.error(
+        "Mark home web presence failed:",
+        error
+      );
+    }
+
+    await loadHomeStatus();
+  } finally {
+    refreshInFlight = false;
   }
 }
 
@@ -296,6 +375,15 @@ elements.signOutButton.addEventListener("click", () => {
   void handleSignOut();
 });
 
+document.addEventListener("visibilitychange", () => {
+  if (
+    document.visibilityState === "visible" &&
+    currentSession
+  ) {
+    void refreshHome();
+  }
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const authenticated = await initializeAuth();
@@ -304,11 +392,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    await loadHomeStatus();
+    await refreshHome();
 
     refreshTimer = window.setInterval(() => {
-      void loadHomeStatus();
-    }, 30000);
+      void refreshHome();
+    }, HOME_REFRESH_INTERVAL_MS);
 
     clockTimer = window.setInterval(renderStatus, 60000);
   } catch (error) {
