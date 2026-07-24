@@ -84,6 +84,24 @@
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
+  <script>
+    (() => {
+      const requestedSourceType =
+        new URLSearchParams(window.location.search)
+          .get("sourceType");
+      const sourceTypeFilter =
+        document.getElementById("sourceTypeFilter");
+
+      if (
+        requestedSourceType &&
+        sourceTypeFilter?.querySelector(
+          `option[value="${CSS.escape(requestedSourceType)}"]`
+        )
+      ) {
+        sourceTypeFilter.value = requestedSourceType;
+      }
+    })();
+  </script>
   <script src="js/text-ledger.js?v=20260725-v02"></script>
 </body>
 </html>
