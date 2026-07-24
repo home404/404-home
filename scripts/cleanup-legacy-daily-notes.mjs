@@ -1,6 +1,10 @@
 import "dotenv/config";
 
 import {
+  pathToFileURL
+} from "node:url";
+
+import {
   createClient
 } from "@supabase/supabase-js";
 
@@ -122,10 +126,16 @@ async function main() {
 }
 
 
-main().catch((error) => {
-  /* 清扫失败不能阻止 404 主服务开门。 */
-  console.warn(
-    "[daily-note-cleanup] failed:",
-    error?.message ?? error
-  );
-});
+const entryPath = process.argv[1]
+  ? pathToFileURL(process.argv[1]).href
+  : "";
+
+if (import.meta.url === entryPath) {
+  main().catch((error) => {
+    /* 清扫失败不能阻止 404 主服务开门。 */
+    console.warn(
+      "[daily-note-cleanup] failed:",
+      error?.message ?? error
+    );
+  });
+}
