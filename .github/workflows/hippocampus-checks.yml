@@ -54,3 +54,4 @@ jobs:
           node --check js/living-room.js
           node --check js/living-room-v2.js
           node --check js/bedroom-v2.js
+          node --check js/bedroom-live.js
