@@ -201,6 +201,10 @@ button { font: inherit; }
   object-fit: contain;
   image-rendering: pixelated;
 }
+.room-icon img.is-living-room {
+  -webkit-clip-path: inset(0 2% 0 0);
+  clip-path: inset(0 2% 0 0);
+}
 .room-copy {
   display: flex;
   min-width: 0;
