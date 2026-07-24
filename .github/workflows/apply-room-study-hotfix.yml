@@ -1,0 +1,433 @@
+name: Apply room and study hotfix
+
+on:
+  push:
+    branches:
+      - fix/living-room-entry-study-delete-v01
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/living-room-entry-study-delete-v01
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply source patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              file = Path(path)
+              text = file.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"Expected text not found in {path}: {old[:80]!r}")
+              file.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          replace_once(
+              "home.html",
+              'href="living-room.html"',
+              'href="living-room-v2.html"'
+          )
+
+          Path("living-room.html").write_text('''<!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+            <meta name="theme-color" content="#f7f1e8" />
+            <meta http-equiv="refresh" content="0; url=living-room-v2.html" />
+            <title>正在打开客厅｜404 小窝</title>
+            <style>
+              html,
+              body {
+                min-height: 100%;
+                margin: 0;
+                background: #f7f1e8;
+              }
+
+              body {
+                visibility: hidden;
+              }
+            </style>
+            <script>
+              window.location.replace("living-room-v2.html");
+            </script>
+          </head>
+          <body></body>
+          </html>
+          ''', encoding="utf-8")
+
+          living_html = Path("living-room-v2.html")
+          text = living_html.read_text(encoding="utf-8")
+          text = text.replace(
+              "<title>404 小窝 · 客厅 v2</title>",
+              "<title>客厅｜404 小窝</title>"
+          )
+          lock_block = '''    <section class="lock-card" id="releaseLockCard">
+                <strong>正在读取自动心跳总闸</strong>
+                <span>稍等狐狸检查八百库。</span>
+              </section>
+
+          '''
+          if lock_block not in text:
+              raise SystemExit("living-room-v2 lock card block not found")
+          text = text.replace(lock_block, "", 1)
+          text = text.replace(
+              ">签发测试通行证</button>",
+              ">签发通行证</button>"
+          )
+          text = text.replace(
+              '<script src="js/living-room-v2.js"></script>',
+              '<script src="js/living-room-v2.js?v=20260725-final-v01"></script>'
+          )
+          living_html.write_text(text, encoding="utf-8")
+
+          living_js = Path("js/living-room-v2.js")
+          text = living_js.read_text(encoding="utf-8")
+          element_block = '''  releaseLockCard:
+                document.getElementById("releaseLockCard"),
+          '''
+          if element_block not in text:
+              raise SystemExit("living-room-v2 releaseLockCard element not found")
+          text = text.replace(element_block, "", 1)
+          render_lock = '''function renderLock(status) {
+            const open = Boolean(
+              status.settings
+                ?.automaticHeartbeatReleaseEnabled
+            );
+
+            elements.releaseLockCard.className =
+              `lock-card ${open ? "is-open" : "is-locked"}`;
+            elements.releaseLockCard.innerHTML = open
+              ? [
+                  "<strong>自动心跳发布总闸已开启</strong>",
+                  "<span>普通自然醒来已经可以进入策略判断。</span>"
+                ].join("")
+              : [
+                  "<strong>自动心跳仍在测试锁内</strong>",
+                  "<span>只有大管家明确签发的活动证可以测试，日常自然醒来不会自行启动。</span>"
+                ].join("");
+          }
+
+
+          '''
+          if render_lock not in text:
+              raise SystemExit("living-room-v2 renderLock function not found")
+          text = text.replace(render_lock, "", 1)
+          text = text.replace("  renderLock(status);\n", "", 1)
+          living_js.write_text(text, encoding="utf-8")
+
+          study_html = Path("study.html")
+          text = study_html.read_text(encoding="utf-8")
+          old_scripts = '''  <script src="js/study.js"></script>
+            <script src="js/study-comments-v2.js"></script>'''
+          new_scripts = '''  <script src="js/study.js"></script>
+            <script src="js/study-comments-v2.js"></script>
+            <script src="js/study-entry-delete.js?v=20260725-v01"></script>'''
+          if old_scripts not in text:
+              raise SystemExit("study script block not found")
+          study_html.write_text(
+              text.replace(old_scripts, new_scripts, 1),
+              encoding="utf-8"
+          )
+
+          Path("js/study-entry-delete.js").write_text(r'''"use strict";
+
+          (() => {
+            const STYLE_ID = "study-entry-delete-styles";
+
+            function runWhenReady(callback) {
+              if (document.readyState === "loading") {
+                document.addEventListener(
+                  "DOMContentLoaded",
+                  callback,
+                  { once: true }
+                );
+                return;
+              }
+
+              callback();
+            }
+
+            function injectStyles() {
+              if (document.getElementById(STYLE_ID)) {
+                return;
+              }
+
+              const style = document.createElement("style");
+              style.id = STYLE_ID;
+              style.textContent = `
+                .entry-owner-actions {
+                  display: flex;
+                  justify-content: flex-end;
+                  margin-top: 18px;
+                  padding-top: 14px;
+                  border-top: 1px solid rgba(78, 65, 53, 0.10);
+                }
+
+                .entry-delete-button {
+                  appearance: none;
+                  min-height: 38px;
+                  padding: 0 14px;
+                  border: 1px solid rgba(145, 73, 64, 0.24);
+                  border-radius: 999px;
+                  background: rgba(255, 250, 247, 0.92);
+                  color: #984f46;
+                  font: inherit;
+                  font-size: 12px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  -webkit-tap-highlight-color: transparent;
+                }
+
+                .entry-delete-button:disabled {
+                  cursor: wait;
+                  opacity: 0.55;
+                }
+              `;
+              document.head.appendChild(style);
+            }
+
+            function entryLabel(article) {
+              return article.querySelector(
+                "[data-entry-type]"
+              )?.textContent?.trim() || "书房内容";
+            }
+
+            function setNotice(article, text, type = "") {
+              const status = article.querySelector(
+                "[data-comment-form-status]"
+              );
+
+              if (!status) {
+                return;
+              }
+
+              status.textContent = text || "";
+              status.hidden = !text;
+              status.className =
+                `comment-form-status${
+                  type ? ` is-${type}` : ""
+                }`;
+            }
+
+            async function deleteEntry(article, button) {
+              const entryId = String(
+                article.dataset.entryId ?? ""
+              ).trim();
+
+              if (!entryId) {
+                return;
+              }
+
+              const label = entryLabel(article);
+              const confirmed = window.confirm(
+                `确定删除这条${label}吗？删除后无法恢复。`
+              );
+
+              if (!confirmed) {
+                return;
+              }
+
+              const apiFetch = globalThis.studyApiFetch;
+
+              if (typeof apiFetch !== "function") {
+                setNotice(
+                  article,
+                  "删除接口还没有准备好，请刷新后再试。",
+                  "error"
+                );
+                return;
+              }
+
+              button.disabled = true;
+              button.textContent = "正在删除…";
+              setNotice(article, "正在删除…");
+
+              try {
+                await apiFetch(
+                  `/api/text-ledger/items/study_entry/${encodeURIComponent(entryId)}`,
+                  { method: "DELETE" }
+                );
+
+                const panel = article.closest(
+                  "[data-study-panel]"
+                );
+                const tabName =
+                  panel?.dataset.studyPanel ?? null;
+                const reload =
+                  globalThis.loadTabEntries;
+
+                article.remove();
+
+                if (
+                  typeof reload === "function" &&
+                  tabName
+                ) {
+                  await reload(
+                    tabName,
+                    { force: true }
+                  );
+                }
+              } catch (error) {
+                console.error(
+                  "Delete study entry failed:",
+                  error
+                );
+                button.disabled = false;
+                button.textContent = "删除";
+                setNotice(
+                  article,
+                  error?.message ??
+                    "删除失败，文字仍然保留。",
+                  "error"
+                );
+              }
+            }
+
+            function enhanceEntry(article) {
+              if (
+                !(article instanceof Element) ||
+                article.dataset.entryDeleteReady ===
+                  "true"
+              ) {
+                return;
+              }
+
+              article.dataset.entryDeleteReady =
+                "true";
+
+              const body = article.querySelector(
+                "[data-entry-body]"
+              );
+
+              if (!body) {
+                return;
+              }
+
+              const actions =
+                document.createElement("div");
+              actions.className =
+                "entry-owner-actions";
+
+              const button =
+                document.createElement("button");
+              button.type = "button";
+              button.className =
+                "entry-delete-button";
+              button.textContent = "删除";
+              button.setAttribute(
+                "aria-label",
+                `删除这条${entryLabel(article)}`
+              );
+
+              button.addEventListener(
+                "click",
+                () => {
+                  void deleteEntry(article, button);
+                }
+              );
+
+              actions.appendChild(button);
+              body.insertAdjacentElement(
+                "afterend",
+                actions
+              );
+            }
+
+            function enhanceWithin(root) {
+              if (!(root instanceof Element)) {
+                return;
+              }
+
+              if (root.matches(".study-entry")) {
+                enhanceEntry(root);
+              }
+
+              for (
+                const article of
+                root.querySelectorAll(".study-entry")
+              ) {
+                enhanceEntry(article);
+              }
+            }
+
+            function start() {
+              injectStyles();
+              enhanceWithin(document.body);
+
+              const observer = new MutationObserver(
+                (records) => {
+                  for (const record of records) {
+                    for (
+                      const node of record.addedNodes
+                    ) {
+                      if (node instanceof Element) {
+                        enhanceWithin(node);
+                      }
+                    }
+                  }
+                }
+              );
+
+              observer.observe(document.body, {
+                childList: true,
+                subtree: true
+              });
+            }
+
+            runWhenReady(start);
+          })();
+          ''', encoding="utf-8")
+
+          checks = Path(
+              ".github/workflows/hippocampus-checks.yml"
+          )
+          text = checks.read_text(encoding="utf-8")
+          marker = "          node --check js/text-ledger.js\n"
+          if marker not in text:
+              raise SystemExit("CI browser syntax marker not found")
+          checks.write_text(
+              text.replace(
+                  marker,
+                  marker +
+                  "          node --check js/study-entry-delete.js\n",
+                  1
+              ),
+              encoding="utf-8"
+          )
+          PY
+
+      - name: Run checks
+        run: |
+          node --check js/living-room-v2.js
+          node --check js/study-entry-delete.js
+          npm test
+
+      - name: Commit source changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/apply-room-study-hotfix.yml
+          git add -A
+          git commit -m "fix: switch final living room and add study entry delete"
+          git push origin HEAD:fix/living-room-entry-study-delete-v01
