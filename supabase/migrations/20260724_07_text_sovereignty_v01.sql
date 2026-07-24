@@ -100,7 +100,7 @@ begin
       new.owner_user_id,
       'bedroom',
       'active',
-      'official-message-' || new.owner_user_id::text,
+      null,
       jsonb_build_object(
         'createdBy', 'official-message-bridge',
         'responseChainTurns', 0,
