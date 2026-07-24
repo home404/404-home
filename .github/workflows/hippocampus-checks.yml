@@ -48,12 +48,17 @@ jobs:
           node --check services/bedroom-summary-service.mjs
           node --check services/interaction-guard-service.mjs
           node --check services/activity-clock-service.mjs
+          node --check services/text-ledger-service.mjs
+          node --check services/text-ledger-extra-service.mjs
+          node --check services/text-ledger-composite-service.mjs
           node --check routes/home-orchestration-api.mjs
           node --check routes/interaction-guard-api.mjs
           node --check routes/activity-clock-api.mjs
           node --check routes/living-room-api.mjs
           node --check routes/living-room-v2-api.mjs
           node --check routes/bedroom-api.mjs
+          node --check routes/bedroom-messages-api.mjs
+          node --check routes/text-ledger-api.mjs
           node --check routes/shortcut-bridge-api.mjs
           node --check worker/heart-worker-v04.mjs
           node --check worker/heart-worker-v05.mjs
@@ -68,3 +73,5 @@ jobs:
           node --check js/bedroom-v2.js
           node --check js/bedroom-resident-context.js
           node --check js/bedroom-live.js
+          node --check js/bedroom-messages.js
+          node --check js/text-ledger.js

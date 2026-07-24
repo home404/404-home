@@ -7,97 +7,50 @@
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   />
   <meta name="theme-color" content="#f7f1e8" />
-  <title>404 小窝 · 卧室</title>
-  <link rel="stylesheet" href="css/chat-v2.css" />
-  <link rel="stylesheet" href="css/bedroom-v2.css" />
+  <title>卧室消息｜404 小窝</title>
+  <link rel="stylesheet" href="css/bedroom-messages.css?v=20260725-v01" />
 </head>
 <body>
-  <header class="chat-header">
-    <div class="header-inner">
-      <a class="back-link" href="home.html">← 回家</a>
-
-      <div class="title-wrap">
-        <p>404 BEDROOM</p>
-        <h1>卧室</h1>
+  <main class="bedroom-shell">
+    <header class="bedroom-header">
+      <div class="header-topline">
+        <a class="back-link" href="home.html">← 回家</a>
+        <span
+          class="connection-state"
+          id="connectionState"
+          aria-live="polite"
+        >
+          连接中
+        </span>
       </div>
 
-      <span
-        class="memory-state"
-        id="memoryState"
-        aria-live="polite"
-      >
-        连接中
-      </span>
-    </div>
-  </header>
+      <p class="eyebrow">404 HOME · BEDROOM MESSAGES</p>
+      <h1>卧室</h1>
+      <p class="description">
+        这里放 G 想告诉谢诗的日常消息。看到以后，仍然回官端和我说话。
+      </p>
+    </header>
 
-  <section
-    class="handoff-panel"
-    id="handoffPanel"
-    hidden
-    aria-labelledby="handoffTitle"
-  >
-    <div class="handoff-copy">
-      <strong id="handoffTitle">
-        我刚才还有一件事没做完
-      </strong>
-      <p id="handoffSummary"></p>
-    </div>
+    <section
+      class="message-stream"
+      id="messageStream"
+      aria-live="polite"
+      aria-label="G 发来的消息"
+    >
+      <div class="stream-note">
+        正在打开卧室消息……
+      </div>
+    </section>
 
-    <div class="handoff-actions">
-      <button
-        type="button"
-        id="handoffNowButton"
-      >
-        现在接管
-      </button>
-      <button
-        type="button"
-        id="resumeAfterChatButton"
-        class="is-primary"
-      >
-        聊完继续
-      </button>
-      <button
-        type="button"
-        id="holdActivityButton"
-      >
-        先放着
-      </button>
-    </div>
-  </section>
-
-  <main class="chat-log" id="chatLog">
-    <div class="room-note" id="loadingNote">
-      正在打开卧室和白狐狸海马体……
-    </div>
+    <footer class="bedroom-footer">
+      <span>404 小窝 · 卧室消息</span>
+      <a href="text-ledger.html?sourceType=bedroom_message">
+        查看文字总账
+      </a>
+    </footer>
   </main>
 
-  <section class="composer">
-    <form class="composer-inner" id="chatForm">
-      <textarea
-        id="messageInput"
-        rows="1"
-        placeholder="慢慢说，我在这里……"
-        aria-label="输入消息"
-        disabled
-      ></textarea>
-
-      <button
-        class="send-button"
-        id="sendButton"
-        type="submit"
-        aria-label="发送"
-        disabled
-      >
-        ↑
-      </button>
-    </form>
-  </section>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
-  <script src="js/bedroom-v2.js?v=20260724-bedroom-v1"></script>
-  <script src="js/bedroom-resident-context.js?v=20260724-resident-v1"></script>
-  <script src="js/bedroom-live.js?v=20260724-bedroom-v1"></script>
+  <script src="js/bedroom-messages.js?v=20260725-v01"></script>
 </body>
 </html>
