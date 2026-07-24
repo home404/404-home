@@ -165,6 +165,15 @@ const createShortcutBridgeHandler =
       "shortcut_bridge_api_unavailable"
   });
 
+const createHomeWebPresenceHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/home-web-presence-api.mjs",
+    label: "Home Web Presence",
+    fallbackError:
+      "home_web_presence_api_unavailable"
+  });
+
 const createStudyCommentDeleteHandler =
   createLazyRouteLoader({
     modulePath:
@@ -286,6 +295,19 @@ capturedApp.delete(
 
 
 /*
+  首页打开后续一张短租约。
+  只暂停自动心跳，不结束官端缓冲，也不暂停自由活动。
+*/
+
+capturedApp.post(
+  "/api/heart/home-presence",
+  createHomeWebPresenceHandler(
+    "markHomeWebPresence"
+  )
+);
+
+
+/*
   iPhone 快捷指令只调用这两条极轻量接口。
   它们只更新 Supabase 状态，不调用 OpenAI。
 */
@@ -306,5 +328,5 @@ capturedApp.post(
 
 
 console.log(
-  "🧠 全屋调度器、实际活动时钟、客厅 v2、卧室小纸条、书房评论删除与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
+  "🧠 全屋调度器、网页在家租约、实际活动时钟、客厅 v2、卧室小纸条、书房评论删除与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
 );
