@@ -30,6 +30,44 @@ function normalizeLimit(value) {
 }
 
 
+function buildExtraItemBody(
+  sourceType,
+  row
+) {
+  if (
+    sourceType ===
+      EXTRA_SOURCE_TYPES.ACTIVITY_PASS
+  ) {
+    return normalizeText(row.note);
+  }
+
+  if (
+    sourceType ===
+      EXTRA_SOURCE_TYPES.ACTIVITY_PROGRESS
+  ) {
+    return [
+      normalizeText(row.current_task),
+      normalizeText(row.progress_summary)
+    ].filter(Boolean).join("\n\n");
+  }
+
+  if (
+    sourceType ===
+      EXTRA_SOURCE_TYPES.ACTIVITY_RUN
+  ) {
+    return [
+      normalizeText(row.short_note),
+      normalizeText(row.result_summary),
+      normalizeText(row.error_message)
+    ].filter(Boolean).join("\n\n");
+  }
+
+  return normalizeText(
+    row.content ?? row.body
+  );
+}
+
+
 export function resolveLedgerServiceGroup(
   sourceType
 ) {
@@ -135,9 +173,27 @@ export function createTextLedgerCompositeService({
 
 
   async function getItem(input) {
-    return selectService(
+    const group = resolveLedgerServiceGroup(
+      input.sourceType
+    );
+    const result = await selectService(
       input.sourceType
     ).getItem(input);
+
+    if (group !== "extra") {
+      return result;
+    }
+
+    return {
+      ...result,
+      row: {
+        ...result.row,
+        body: buildExtraItemBody(
+          input.sourceType,
+          result.row
+        )
+      }
+    };
   }
 
 
