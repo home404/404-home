@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -26,13 +29,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Apply resident runtime patch when present
+        if: ${{ hashFiles('scripts/apply-resident-mode-runtime-patch.mjs') != '' }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/apply-resident-mode-runtime-patch.mjs')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('previousResponseId.', 'previousResponseId。')
+          path.write_text(text, encoding='utf-8')
+          PY
+          node scripts/apply-resident-mode-runtime-patch.mjs
+
       - name: Run unit tests
         run: npm test
 
       - name: Check service, routes, worker and browser syntax
         run: |
           node --check server-v2.js
+          node --check services/heart-service.mjs
           node --check services/heart-policy-service.mjs
+          node --check services/daily-activity-note-service.mjs
           node --check services/hippocampus-service.mjs
           node --check services/home-orchestration-service.mjs
           node --check services/heartbeat-context-service.mjs
@@ -49,9 +66,23 @@ jobs:
           node --check routes/bedroom-api.mjs
           node --check routes/shortcut-bridge-api.mjs
           node --check worker/heart-worker-v04.mjs
+          node --check js/home.js
           node --check js/heart-settings.js
           node --check js/chat-v2.js
           node --check js/living-room.js
           node --check js/living-room-v2.js
           node --check js/bedroom-v2.js
           node --check js/bedroom-live.js
+
+      - name: Commit generated resident changes
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'feat/resident-bedroom-v1' }}
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit."
+            exit 0
+          fi
+          git config user.name "404 construction fox"
+          git config user.email "actions@users.noreply.github.com"
+          git commit -m "feat: complete resident mode runtime [resident-patch-applied]"
+          git push origin HEAD:${{ github.head_ref }}
