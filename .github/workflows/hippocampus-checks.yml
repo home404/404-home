@@ -75,3 +75,6 @@ jobs:
           node --check js/bedroom-live.js
           node --check js/bedroom-messages.js
           node --check js/text-ledger.js
+          node --check js/study-comments-v2.js
+          node --check js/study-comments-v2-core.js
+          node --check js/study-entry-delete.js
