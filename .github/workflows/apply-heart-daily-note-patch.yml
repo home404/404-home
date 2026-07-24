@@ -1,0 +1,57 @@
+name: Apply heart daily note patch
+
+on:
+  push:
+    branches:
+      - fix/heart-daily-activity-note-v01
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: >-
+      ${{
+        !contains(github.event.head_commit.message, '[patch-applied]') &&
+        !contains(github.event.head_commit.message, '[cleanup]')
+      }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out patch branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/heart-daily-activity-note-v01
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply one-shot source patch
+        run: node scripts/patch-heart-daily-activity-note.mjs
+
+      - name: Check syntax
+        run: |
+          node --check services/heart-service.mjs
+          node --check services/daily-activity-note-service.mjs
+
+      - name: Run tests
+        run: npm test
+
+      - name: Commit patched source
+        run: |
+          git config user.name "404 Construction Fox"
+          git config user.email "actions@users.noreply.github.com"
+          git add services/heart-service.mjs
+          if git diff --cached --quiet; then
+            echo "No source changes to commit."
+            exit 0
+          fi
+          git commit -m "fix: separate messages from daily activity notes [patch-applied]"
+          git push origin HEAD:fix/heart-daily-activity-note-v01
