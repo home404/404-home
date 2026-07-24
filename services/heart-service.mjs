@@ -8,6 +8,10 @@ import {
   createStudyService
 } from "./study-service.mjs";
 
+import {
+  createDailyActivityNoteService
+} from "./daily-activity-note-service.mjs";
+
 
 const SHANGHAI_TIME_ZONE = "Asia/Shanghai";
 
@@ -41,8 +45,7 @@ const HEART_DECISION_SCHEMA = {
         "silent",
         "reply_comment",
         "write_diary",
-        "leave_message",
-        "leave_note"
+        "leave_message"
       ]
     },
     targetCommentId: {
@@ -91,8 +94,7 @@ const heartDecisionSchema = z.object({
     "silent",
     "reply_comment",
     "write_diary",
-    "leave_message",
-    "leave_note"
+    "leave_message"
   ]),
 
   targetCommentId: z
@@ -893,8 +895,9 @@ ${passLine}
 1. 回复一条尚未回复的谢诗评论；
 2. 写一篇短日记；
 3. 给谢诗留一条留言；
-4. 写一张小纸条；
-5. 保持安静。
+4. 保持安静。
+
+小纸条不属于你的自主动作菜单。程序会把当天发生的真实活动，自动续写到当天唯一的一张活动小纸条中。
 
 游戏、上网浏览、房间整理工具目前尚未接通，因此不要声称自己已经玩游戏、上网冲浪或修改了房间。
 不要为了证明心脏在运行而硬写内容。没有自然想做的事情时，选择 silent。
@@ -914,7 +917,7 @@ ${entryLines}
 ${commentLines}
 
 输出字段说明：
-- action：silent / reply_comment / write_diary / leave_message / leave_note
+- action：silent / reply_comment / write_diary / leave_message
 - targetCommentId：只在 reply_comment 时填写评论 ID，其余填空字符串
 - title：内容标题；silent 时填空字符串
 - body：正文；silent 时填空字符串
@@ -971,6 +974,14 @@ export function createHeartService({
         serviceClient,
       auditClient:
         serviceClient
+    });
+
+  const dailyActivityNoteService =
+    createDailyActivityNoteService({
+      serviceClient,
+      studyService,
+      timeZone:
+        SHANGHAI_TIME_ZONE
     });
 
 
@@ -1789,7 +1800,6 @@ export function createHeartService({
         runId
     };
 
-    const clock = formatClock(now);
     const baseSourceRef = {
       channel:
         "404_heart",
@@ -1931,60 +1941,19 @@ export function createHeartService({
         );
     }
 
-    if (
-      decision.action ===
-        "leave_note"
-    ) {
-      eventTitle =
-        decision.activityLabel ||
-        "写了一张小纸条";
-      eventDetail =
-        trimText(
-          decision.body,
-          500
-        );
-    }
-
-    const paperTitle =
-      `${clock}　${eventTitle}`;
-
-    const paperResult =
-      await studyService.createEntry(
-        {
-          entryType:
-            "note",
-          title:
-            paperTitle,
-          body:
-            decision.action ===
-              "leave_note"
-              ? decision.body
-              : "",
-          summary:
-            eventTitle,
-          mood:
-            activePass
-              ? "自由活动"
-              : "刚刚醒过",
-          tags: [
-            "小纸条",
-            "活动记录"
-          ],
-          visibility:
-            "home_private",
-          sourceRef: {
-            ...baseSourceRef,
-            kind:
-              "activity_note"
-          },
-          idempotencyKey:
-            `heart-${runId}-paper`
-        },
-        actor
-      );
-
     paperEntry =
-      paperResult.entry;
+      await dailyActivityNoteService
+        .append({
+          userId,
+          actor,
+          now,
+          eventTitle,
+          eventDetail,
+          runId,
+          heartbeatRunId,
+          activityPass:
+            activePass
+        });
 
     await insertHomeEvent({
       userId,
@@ -1998,9 +1967,7 @@ export function createHeartService({
         decision.action ===
           "write_diary" ||
         decision.action ===
-          "leave_message" ||
-        decision.action ===
-          "leave_note"
+          "leave_message"
           ? "study"
           : null,
       title:
