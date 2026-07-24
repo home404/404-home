@@ -102,9 +102,6 @@
     const replyContext = article.querySelector(
       "[data-comment-reply-context]"
     );
-    const cancelReply = article.querySelector(
-      "[data-comment-cancel-reply]"
-    );
 
     if (
       input &&
@@ -126,7 +123,6 @@
 
     if (
       replyContext &&
-      cancelReply &&
       replyContext.dataset.cancelReady !== "true"
     ) {
       replyContext.dataset.cancelReady = "true";
@@ -139,17 +135,23 @@
       replyContext.title = "轻点取消回复";
 
       const clearReply = () => {
-        cancelReply.click();
+        article.replyTarget = null;
+        replyContext.hidden = true;
+        setEntryNotice(article, "");
 
         if (input) {
           input.placeholder = "写评论…";
           resizeCommentInput(input);
+          input.focus();
         }
       };
 
       replyContext.addEventListener(
         "click",
-        clearReply
+        (event) => {
+          event.preventDefault();
+          clearReply();
+        }
       );
 
       replyContext.addEventListener(
@@ -510,11 +512,7 @@
     item.addEventListener(
       "contextmenu",
       (event) => {
-        if (
-          item.classList.contains(
-            "is-long-pressing"
-          )
-        ) {
+        if (!isInteractiveTarget(event.target)) {
           event.preventDefault();
         }
       }
