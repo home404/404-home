@@ -1,0 +1,311 @@
+/*
+  书房评论区 v2
+
+  目标：
+  - 正文按段落阅读；
+  - 评论与回复统一左对齐，不做楼中楼；
+  - 回复按钮在右下角；
+  - 手机输入框保持微信式紧凑；
+  - 长按评论可以删除，仍保留明确确认。
+*/
+
+.entry-body {
+  white-space: normal !important;
+}
+
+.entry-body p {
+  margin: 0 0 1.15em;
+  white-space: pre-line;
+}
+
+.entry-body p:last-child {
+  margin-bottom: 0;
+}
+
+.entry-meta {
+  margin-top: 10px;
+}
+
+.entry-time,
+.entry-tags span {
+  opacity: 0.82;
+}
+
+.comments-section {
+  margin-top: 24px;
+  padding-top: 18px;
+}
+
+.comments-heading {
+  min-height: 24px;
+}
+
+.comments-heading h4 {
+  font-size: 12px;
+}
+
+.comment-count {
+  font-size: 9px;
+}
+
+.comment-long-press-hint {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.comment-list {
+  display: block;
+  margin-top: 10px;
+}
+
+.comment-item,
+.comment-item[data-comment-depth]:not([data-comment-depth="0"]) {
+  position: relative;
+  margin: 0 !important;
+  padding: 10px 0 9px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(78, 65, 53, 0.09) !important;
+  border-radius: 0;
+  background: transparent;
+  touch-action: pan-y;
+  transition:
+    opacity 140ms ease,
+    background-color 140ms ease;
+}
+
+.comment-item:last-child {
+  border-bottom: 0 !important;
+}
+
+.comment-item.is-long-pressing {
+  border-radius: 10px;
+  background: rgba(78, 65, 53, 0.045);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.comment-item.is-deleting {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.comment-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 7px;
+}
+
+.comment-header strong {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.comment-header time {
+  color: var(--text-faint);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.comment-reply-reference {
+  margin: 4px 0 0;
+  color: var(--text-faint);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.comment-body {
+  margin: 5px 0 0;
+  color: var(--text-main);
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-reply-button {
+  display: block;
+  margin: 4px 0 0 auto !important;
+  padding: 4px 0 2px !important;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 10px !important;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.comment-reply-button:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid rgba(142, 109, 77, 0.18);
+  outline-offset: 2px;
+}
+
+.comment-replies {
+  display: none !important;
+}
+
+.comment-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.comment-form label {
+  min-width: 0;
+}
+
+.comment-reply-context {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  background: transparent !important;
+  color: var(--text-soft) !important;
+  font-size: 10px !important;
+  line-height: 1.45 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.comment-reply-context[hidden] {
+  display: none !important;
+}
+
+.comment-reply-context:focus-visible {
+  border-radius: 5px;
+  outline: 2px solid rgba(142, 109, 77, 0.16);
+  outline-offset: 2px;
+}
+
+.comment-cancel-reply {
+  display: none !important;
+}
+
+.comment-form textarea {
+  width: 100%;
+  min-height: 40px !important;
+  max-height: 120px;
+  padding: 9px 11px !important;
+  resize: none;
+  border-radius: 12px !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+  overflow-y: auto;
+}
+
+.comment-form button[data-comment-submit] {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.comment-form button[data-comment-submit]:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.comment-form-status {
+  grid-column: 1 / -1;
+  margin-top: 0 !important;
+  font-size: 10px !important;
+}
+
+.comments-empty {
+  padding: 5px 0 2px;
+  font-size: 11px;
+}
+
+@media (max-width: 600px) {
+  .study-panel {
+    min-height: 320px;
+    padding: 15px;
+    border-radius: 21px;
+  }
+
+  .panel-heading {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+  }
+
+  .study-entry {
+    padding: 16px;
+    border-radius: 17px;
+  }
+
+  .entry-header {
+    gap: 5px;
+  }
+
+  .entry-meta {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .entry-body {
+    margin-top: 18px;
+    font-size: 14px;
+    line-height: 1.82;
+  }
+
+  .entry-body p {
+    margin-bottom: 1em;
+  }
+
+  .comments-section {
+    margin-top: 21px;
+    padding-top: 15px;
+  }
+
+  .comment-list {
+    margin-top: 8px;
+  }
+
+  .comment-item,
+  .comment-item[data-comment-depth]:not([data-comment-depth="0"]) {
+    padding: 9px 0 8px !important;
+  }
+
+  .comment-form {
+    margin-top: 10px;
+  }
+
+  .comment-form textarea,
+  .comment-form button[data-comment-submit] {
+    min-height: 38px !important;
+  }
+
+  .comment-form textarea {
+    padding: 8px 10px !important;
+  }
+
+  .comment-long-press-hint {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .comment-header {
+    align-items: baseline;
+    flex-direction: row;
+    gap: 6px;
+  }
+
+  .comment-long-press-hint {
+    display: none;
+  }
+
+  .comment-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
