@@ -61,6 +61,7 @@ jobs:
           node --check js/resident-home.js
           node --check js/heart-settings.js
           node --check js/resident-heart-settings.js
+          node --check js/resident-heart-runtime-sync.js
           node --check js/chat-v2.js
           node --check js/living-room.js
           node --check js/living-room-v2.js
