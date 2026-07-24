@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <meta name="theme-color" content="#f8f5ef" />
+  <title>文字总账｜404 小窝</title>
+  <link rel="stylesheet" href="css/text-ledger.css" />
+</head>
+<body>
+  <main class="ledger-shell">
+    <header class="ledger-header">
+      <a href="home.html" class="back-link">← 返回小窝</a>
+      <p class="eyebrow">404 HOME · TEXT LEDGER</p>
+      <h1>文字总账</h1>
+      <p class="description">
+        404 数据库里面向我们的正文，都要能在手机上找到、打开、归档或删除。
+      </p>
+    </header>
+
+    <section class="ledger-controls" aria-label="筛选文字">
+      <label>
+        <span>来源</span>
+        <select id="sourceTypeFilter">
+          <option value="">全部文字</option>
+          <option value="bedroom_message">卧室消息</option>
+          <option value="study_entry">书房内容与小纸条</option>
+          <option value="study_comment">书房评论</option>
+          <option value="memory">海马体记忆</option>
+          <option value="home_event">全屋活动</option>
+        </select>
+      </label>
+
+      <label class="archive-toggle">
+        <input id="archivedFilter" type="checkbox" />
+        <span>查看已归档</span>
+      </label>
+
+      <button id="refreshButton" type="button">重新读取</button>
+    </section>
+
+    <p id="ledgerStatus" class="ledger-status" aria-live="polite">
+      正在确认全屋门锁……
+    </p>
+
+    <section id="ledgerList" class="ledger-list" aria-live="polite"></section>
+
+    <footer class="ledger-footer">
+      <span>404 小窝 · 文字主权</span>
+      <a href="home.html">回到总览</a>
+    </footer>
+  </main>
+
+  <template id="ledgerItemTemplate">
+    <article class="ledger-item">
+      <header class="item-header">
+        <div>
+          <span class="source-label" data-source-label></span>
+          <h2 data-title></h2>
+        </div>
+        <time data-time></time>
+      </header>
+
+      <p class="item-preview" data-preview></p>
+      <div class="item-tags" data-tags></div>
+
+      <details class="item-detail">
+        <summary data-open-detail>查看完整内容</summary>
+        <pre data-full-body>正在读取……</pre>
+      </details>
+
+      <div class="item-actions">
+        <button type="button" data-archive></button>
+        <button type="button" class="danger" data-delete>删除</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.7"></script>
+  <script src="js/text-ledger.js"></script>
+</body>
+</html>
