@@ -225,6 +225,36 @@ export async function startInteractionBridge(
       ...result
     });
   } catch (error) {
+    /*
+      互动会话与后台暂停已经先于 home_presence 更新完成。
+      若只是旧数据库缺少某个展示字段，不应连带锁死卧室聊天。
+      Worker 仍会读取 home_interaction_sessions 并给前台让路。
+    */
+    if (
+      error instanceof HomeOrchestrationError &&
+      error.code ===
+        "interactive_presence_update_failed"
+    ) {
+      console.warn(
+        "Interaction presence update degraded:",
+        error.details ?? error.message
+      );
+
+      res.set(
+        "Cache-Control",
+        "no-store"
+      );
+
+      return res.status(201).json({
+        ok: true,
+        degraded: true,
+        presenceDeferred: true,
+        preservedActivityState: null,
+        warning:
+          "互动已经登记，首页状态稍后同步。"
+      });
+    }
+
     return sendError(res, error);
   }
 }

@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "server-v2.js",
   "scripts": {
-    "start": "node server-v2.js",
+    "start": "node scripts/cleanup-legacy-daily-notes.mjs && node server-v2.js",
     "test": "node --test",
     "heart:worker": "node worker/heart-worker-v05.mjs"
   },
