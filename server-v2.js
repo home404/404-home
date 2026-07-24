@@ -28,7 +28,6 @@ Object.assign(
   wrappedExpress,
   originalExpress
 );
-
 require.cache[expressPath].exports =
   wrappedExpress;
 
@@ -166,6 +165,15 @@ const createShortcutBridgeHandler =
       "shortcut_bridge_api_unavailable"
   });
 
+const createStudyCommentDeleteHandler =
+  createLazyRouteLoader({
+    modulePath:
+      "./routes/study-comment-delete-api.mjs",
+    label: "Study Comment Delete",
+    fallbackError:
+      "study_comment_delete_api_unavailable"
+  });
+
 
 capturedApp.get(
   "/api/home-orchestration/status",
@@ -267,6 +275,16 @@ capturedApp.post(
 );
 
 
+/* 屋主可在书房长按评论；删除父评论时一并清理它下面的回复。 */
+
+capturedApp.delete(
+  "/api/study/comments/:commentId",
+  createStudyCommentDeleteHandler(
+    "deleteStudyComment"
+  )
+);
+
+
 /*
   iPhone 快捷指令只调用这两条极轻量接口。
   它们只更新 Supabase 状态，不调用 OpenAI。
@@ -288,5 +306,5 @@ capturedApp.post(
 
 
 console.log(
-  "🧠 全屋调度器、实际活动时钟、客厅 v2、卧室小纸条与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
+  "🧠 全屋调度器、实际活动时钟、客厅 v2、卧室小纸条、书房评论删除与手机连接桥 API 已挂载；自动心跳发布总闸默认关闭。"
 );
