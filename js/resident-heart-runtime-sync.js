@@ -64,6 +64,42 @@
     }
   }
 
+  function preferencesAreReady() {
+    return Boolean(
+      typeof currentPreferences !==
+        "undefined" &&
+      currentPreferences &&
+      typeof currentPreferences
+        .autoHeartbeatEnabled ===
+        "boolean"
+    );
+  }
+
+  function syncAfterPreferencesLoad(
+    attempt = 0
+  ) {
+    if (preferencesAreReady()) {
+      void syncRuntimeRelease({
+        force: true
+      });
+      restoreResidentLabels();
+      return;
+    }
+
+    if (attempt >= 30) {
+      console.warn(
+        "Resident runtime release: preferences did not become ready."
+      );
+      return;
+    }
+
+    window.setTimeout(() => {
+      syncAfterPreferencesLoad(
+        attempt + 1
+      );
+    }, 500);
+  }
+
   function restoreResidentLabels() {
     const saveButton =
       document.getElementById(
@@ -118,15 +154,10 @@
     );
 
     /*
-      偏好读取完成后，以页面唯一开关为准同步发布总闸。
-      这样以后不再需要屋主理解两套开关。
+      等旧偏好真正从数据库读回来后，再用页面唯一开关同步发布总闸。
+      Railway 冷启动再慢，也不会把初始空白状态误写成关闭。
     */
-    window.setTimeout(() => {
-      void syncRuntimeRelease({
-        force: true
-      });
-      restoreResidentLabels();
-    }, 1200);
+    syncAfterPreferencesLoad();
   }
 
   if (document.readyState === "loading") {
