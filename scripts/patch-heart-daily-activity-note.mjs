@@ -150,7 +150,7 @@ replaceOnce(
     }
 
     const paperTitle =
-      \`${clock}　${eventTitle}\`;
+      \`\${clock}　\${eventTitle}\`;
 
     const paperResult =
       await studyService.createEntry(
@@ -182,7 +182,7 @@ replaceOnce(
               "activity_note"
           },
           idempotencyKey:
-            \`heart-${runId}-paper\`
+            \`heart-\${runId}-paper\`
         },
         actor
       );
