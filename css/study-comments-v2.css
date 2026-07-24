@@ -71,6 +71,7 @@
   border-radius: 0;
   background: transparent;
   touch-action: pan-y;
+  -webkit-touch-callout: none;
   transition:
     opacity 140ms ease,
     background-color 140ms ease;
